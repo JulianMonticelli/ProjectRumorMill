@@ -25,8 +25,8 @@ import networkx as nx   # GraphML
 import random as rand
 
 
-
-num_runs = 100       # Default number of runs
+maximum_allowed_simulation_rounds = 1000000 # 1 million runs currently
+num_runs = 1000       # Default number of runs
 
 
 def main():
@@ -39,20 +39,29 @@ def main():
    init(simulation_graph)
    
    # Run a simulation 100 times
-   simulate(simulation_graph, 100)
+   simulate(simulation_graph, num_runs)
 
    
 def simulate(graph, num_simulations):
-   current_run = 1
-   sum = 0
    weight_max = max_weight(graph)
+   sum_time = 0
+   num_fails = 0
+   current_run = 1
    while (current_run <= num_simulations):
       graph_instance = copy.deepcopy(graph)
       run_time = run(graph_instance, weight_max)
-      print 'Simulation run ' + str(current_run) + ' took ' + str(run_time) + ' rounds'
-      sum += run_time
+      if (run_time < 0):
+         print 'Simulation ' + str(current_run) + ' failed!'
+         num_fails += 1
+      else:
+         print 'Simulation run ' + str(current_run) + ' took ' + str(run_time) + ' rounds'
+         sum_time += run_time
+
       current_run += 1
-   print 'All ' + str(num_simulations) + ' simulations finished. Average run_time: ' + str(run_time) + ' rounds'
+   if (num_simulations == num_fails): # Avoid division by 0
+      print 'All simulations failed. maximum_allowed_simulation_rounds = ' + str(maximum_allowed_simulation_rounds)
+   else:
+      print str(num_simulations) + ' simulations finished. ' + str(num_fails) + ' simulations failed. Average run time: ' + str(sum_time/ (num_simulations - num_fails) ) + ' rounds'
    
 # Initialize the graph with attributes that are necessary
 def init(graph):
@@ -94,11 +103,17 @@ def run(graph, max_weight):
 
    # TODO: Variable finished condition for easy hook mod
    # Run loop
-   while(not finished(graph)):
+   
+   while(finished(graph, round_num) == 0):
       round_num += 1
       #print round_num # debug
       round(graph, round_num, max_weight)
-   return round_num
+
+   # Check why we quit the simulation
+   if (finished(graph, round_num) > 0): # If we've finished the graph
+      return round_num
+   else:
+      return -1 # Fail code
 
 
 # A step in the simulation
@@ -152,16 +167,20 @@ def roll_weight(curr_weight, max_weight):
    # Returns the likelihood of engagement based on weight of graph nodes
    return rand.randint(0, max_weight) > max_weight - curr_weight
 
-def finished(graph):
+def finished(graph, current_round):
    # Get all attributes and store them in a dictionary
    dict = nx.get_node_attributes(graph, 'flagged')
+   
+   # Make sure we haven't hit the maximum allowed round
+   if (current_round > maximum_allowed_simulation_rounds):
+      return -1 # -1 means we ran out of allowed rounds
    
    # Iterate the nodes and see if they're flagged or not 
    for val in dict:
       if(not dict[val]):
          #print '[' + val  + ']: ' + str(dict[val])
-         return dict[val]
-   return True
+         return 0 # 0 is an incomplete graph
+   return 1 # 1 is a successful graph
 
 
 class Node:
