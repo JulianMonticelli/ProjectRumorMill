@@ -24,7 +24,7 @@ import copy             # For copying graphs
 import networkx as nx   # GraphML
 import random as rand
 
-
+chance_to_spread = 0.01
 maximum_allowed_simulation_rounds = 1000000 # 1 million runs currently
 num_runs = 1000       # Default number of runs
 
@@ -47,14 +47,16 @@ def simulate(graph, num_simulations):
    sum_time = 0
    num_fails = 0
    current_run = 1
+   total_flagged = 0
    while (current_run <= num_simulations):
       graph_instance = copy.deepcopy(graph)
-      run_time = run(graph_instance, weight_max)
+      run_time,num_flagged = run(graph_instance, weight_max)
+      total_flagged += num_flagged
       if (run_time < 0):
-         print 'Simulation ' + str(current_run) + ' failed!'
+         print 'Simulation ' + str(current_run) + ' failed! ' + str(num_flagged) + '/' + str(len(graph.node)) + ' flagged. (' + str((float)(100 * num_flagged/len(graph.node))) + '% complete)'
          num_fails += 1
       else:
-         print 'Simulation run ' + str(current_run) + ' took ' + str(run_time) + ' rounds'
+         print 'Simulation run ' + str(current_run) + ' took ' + str(run_time) + ' rounds. ' + str(len(graph.node)) + '/' + str(len(graph.node)) + ' flagged. (100% complete)'
          sum_time += run_time
 
       current_run += 1
@@ -62,6 +64,9 @@ def simulate(graph, num_simulations):
       print 'All simulations failed. maximum_allowed_simulation_rounds = ' + str(maximum_allowed_simulation_rounds)
    else:
       print str(num_simulations) + ' simulations finished. ' + str(num_fails) + ' simulations failed. Average run time: ' + str(sum_time/ (num_simulations - num_fails) ) + ' rounds'
+      print 'Average completion rate: ' + str( (float)(100 * total_flagged / (len(graph.node) * num_simulations) ) ) + '%'
+
+
    
 # Initialize the graph with attributes that are necessary
 def init(graph):
@@ -100,25 +105,29 @@ def max_weight(graph):
 def run(graph, max_weight):
    # Declare data to gather
    round_num = 0
-
+   num_flags = num_flagged(graph)
+   print 'Total nodes: ' + str(len(graph.node))
    # TODO: Variable finished condition for easy hook mod
    # Run loop
    
    while(finished(graph, round_num) == 0):
       round_num += 1
-      #print round_num # debug
-      round(graph, round_num, max_weight)
+
+      # Run the round and return the number of successes and add it to the total_successes
+      #print round_num #
+      num_flags += round(graph, round_num, max_weight)
 
    # Check why we quit the simulation
    if (finished(graph, round_num) > 0): # If we've finished the graph
-      return round_num
+      return round_num,num_flags
    else:
-      return -1 # Fail code
+      return -1,num_flags # Fail code
 
 
 # A step in the simulation
 def round(graph, round_num, max_weight):
    graphcopy = copy.deepcopy(graph)
+   given_flags = 0
    for n in nx.nodes(graph):
       # For directed graphs, consider flagged only
       if (graph.node[n]['flagged']):
@@ -135,8 +144,20 @@ def round(graph, round_num, max_weight):
                
                if (will_spread(n, g, graph, max_weight)):
                   graph.node[g]['flagged'] = True
-                  #print '[' + g + ']: ' + str(graph.node[g]['flagged'])
-				  
+                  # Increment the number of given_flags this round
+                  given_flags += 1
+                  #print '[' + g + ']: ' + str(graph.node[g]['flagged']
+   return given_flags
+
+
+# Returns an integer value with the number of flagged nodes
+def num_flagged(graph):
+   num_flagged = 0
+   nodes = nx.get_node_attributes(graph, 'flagged')
+   for val in nodes:
+      if (nodes[val]):
+         num_flagged += 1
+   return num_flagged
 
 # Determine if a given source node will transmit information to a given node
 def will_spread(source, dest, graph, max_weight):
@@ -148,7 +169,7 @@ def will_spread(source, dest, graph, max_weight):
    # Will they engage at all? This consults the weight of their edge
    if ( roll_weight (curr_weight , max_weight ) ):
       # This is the chance that their engagement will exchange information
-      if (chance(0.2)):
+      if (chance(chance_to_spread)):
          return True
    return False
 
