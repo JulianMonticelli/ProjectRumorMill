@@ -1,0 +1,5 @@
+                                 Story                                |  Estimation   |  Priority |
+---------------------------------------------------------------------------------------------------
+1. As a developer I want to insert program hooks for finished cond.   |      8       |     3      |
+2. As a developer I want to insert program hooks for custom rounds    |      8       |     3      |
+3. More...
