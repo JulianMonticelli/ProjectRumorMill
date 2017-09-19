@@ -25,7 +25,7 @@ import networkx as nx   # GraphML
 import random as rand
 
 chance_to_spread = 0.01
-maximum_allowed_simulation_rounds = 1000000 # 1 million runs currently
+maximum_allowed_simulation_rounds = 10000 # 1 million runs currently
 num_runs = 1000       # Default number of runs
 
 
@@ -33,7 +33,7 @@ def main():
    # TODO: Program args
    
    # Read in a graph
-   simulation_graph = nx.read_graphml('simpletest.graphml')
+   simulation_graph = nx.read_graphml('simplemodel.graphml')
    
    # Initialize the graph with attributes we need
    init(simulation_graph)
@@ -53,7 +53,7 @@ def simulate(graph, num_simulations):
       run_time,num_flagged = run(graph_instance, weight_max)
       total_flagged += num_flagged
       if (run_time < 0):
-         print 'Simulation ' + str(current_run) + ' failed! ' + str(num_flagged) + '/' + str(len(graph.node)) + ' flagged. (' + str((float)(100 * num_flagged/len(graph.node))) + '% complete)'
+         print 'Simulation ' + str(current_run) + ' failed! ' + str(num_flagged) + '/' + str(len(graph.node)) + ' flagged. (' + str((100 * num_flagged/float(len(graph.node)))) + '% complete)'
          num_fails += 1
       else:
          print 'Simulation run ' + str(current_run) + ' took ' + str(run_time) + ' rounds. ' + str(len(graph.node)) + '/' + str(len(graph.node)) + ' flagged. (100% complete)'
@@ -64,7 +64,7 @@ def simulate(graph, num_simulations):
       print 'All simulations failed. maximum_allowed_simulation_rounds = ' + str(maximum_allowed_simulation_rounds)
    else:
       print str(num_simulations) + ' simulations finished. ' + str(num_fails) + ' simulations failed. Average run time: ' + str(sum_time/ (num_simulations - num_fails) ) + ' rounds'
-      print 'Average completion rate: ' + str( (float)(100 * total_flagged / (len(graph.node) * num_simulations) ) ) + '%'
+      print 'Average completion rate: ' + str( (100 * total_flagged / float((len(graph.node) * num_simulations)) ) ) + '%'
 
 
    
@@ -82,13 +82,13 @@ def init(graph):
    for n1,n2 in dict:
       graph.edge[n1][n2]['weight'] = dict[n1,n2]
    
-   print dict
+   #print dict
    
    #for e in nx.get_edge_attributes(graph, 'weight'):
       #print e
    
    # Set an arbitrary node
-   graph.node['n1']['flagged'] = True
+   graph.node['n2']['flagged'] = True
 
 # Pass in a graph, get the integer maximum weight of all edges
 def max_weight(graph):
@@ -106,7 +106,7 @@ def run(graph, max_weight):
    # Declare data to gather
    round_num = 0
    num_flags = num_flagged(graph)
-   print 'Total nodes: ' + str(len(graph.node))
+   # print 'Total nodes: ' + str(len(graph.node))
    # TODO: Variable finished condition for easy hook mod
    # Run loop
    
