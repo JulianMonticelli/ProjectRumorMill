@@ -10,7 +10,6 @@
                                  Goal                                 |   Estimation   |  Priority |
 ---------------------------------------------------------------------------------------------------
 1. Prettify code, multiple files, etc                                 |       2h       |     2     |
-2. Talk != transmit & Talk == transmit                                |       1h       |     2     |
 3. Multiple starting points / random nodes / multiple sims            |       2h       |     2     |
 4. Graph output                                                       |       4h       |     3     |
 5. Tests                                                              |       TBD      |     3     |
