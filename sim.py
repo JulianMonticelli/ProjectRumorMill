@@ -24,9 +24,13 @@ import copy             # For copying graphs
 import networkx as nx   # GraphML
 import random as rand
 
-chance_to_spread = 0.01
+# Transmission variables
+talkToTransmit = True   # Transmission = just talking?
+chance_to_spread = 0.01 # If transmit =/= talk, what is the chance upon talking
+
+
 maximum_allowed_simulation_rounds = 10000 # 1 million runs currently
-num_runs = 1000       # Default number of runs
+num_runs = 10       # Default number of runs
 
 
 def main():
@@ -53,21 +57,27 @@ def simulate(graph, num_simulations):
       run_time,num_flagged = run(graph_instance, weight_max)
       total_flagged += num_flagged
       if (run_time < 0):
-         print 'Simulation ' + str(current_run) + ' failed! ' + str(num_flagged) + '/' + str(len(graph.node)) + ' flagged. (' + str((100 * num_flagged/float(len(graph.node)))) + '% complete)'
+         print 'Run ' + str(current_run) + ' failed! ' + str(num_flagged) + '/' + str(len(graph.node)) + ' flagged. (' + str(successPercent(graph, num_flagged)) + '% complete)'
          num_fails += 1
       else:
-         print 'Simulation run ' + str(current_run) + ' took ' + str(run_time) + ' rounds. ' + str(len(graph.node)) + '/' + str(len(graph.node)) + ' flagged. (100% complete)'
+         print 'Run ' + str(current_run) + ' took ' + str(run_time) + ' rounds. ' + str(len(graph.node)) + '/' + str(len(graph.node)) + ' flagged. (100% complete)'
          sum_time += run_time
 
       current_run += 1
    if (num_simulations == num_fails): # Avoid division by 0
-      print 'All simulations failed. maximum_allowed_simulation_rounds = ' + str(maximum_allowed_simulation_rounds)
+      print 'All runs failed. maximum_allowed_simulation_rounds = ' + str(maximum_allowed_simulation_rounds) + ' (Average completion rate: ' + str(totalSuccessPercent(graph, total_flagged, num_simulations)) + '%)'
    else:
       print str(num_simulations) + ' simulations finished. ' + str(num_fails) + ' simulations failed. Average run time: ' + str(sum_time/ (num_simulations - num_fails) ) + ' rounds'
-      print 'Average completion rate: ' + str( (100 * total_flagged / float((len(graph.node) * num_simulations)) ) ) + '%'
+      print 'Average completion rate: ' + str(totalSuccessPercent(graph, total_flagged, num_simulations)) + '%)'
 
 
-   
+
+def successPercent(graph, num_flagged):
+   return 100 * num_flagged / float(len(graph.node))
+
+def totalSuccessPercent(graph, num_flagged, num_simulations):
+   return 100 * num_flagged / float((len(graph.node) * num_simulations))
+
 # Initialize the graph with attributes that are necessary
 def init(graph):
    # Give all nodes a false flag
@@ -88,7 +98,7 @@ def init(graph):
       #print e
    
    # Set an arbitrary node
-   graph.node['n2']['flagged'] = True
+   graph.node['n10']['flagged'] = True
 
 # Pass in a graph, get the integer maximum weight of all edges
 def max_weight(graph):
@@ -168,9 +178,12 @@ def will_spread(source, dest, graph, max_weight):
    
    # Will they engage at all? This consults the weight of their edge
    if ( roll_weight (curr_weight , max_weight ) ):
-      # This is the chance that their engagement will exchange information
-      if (chance(chance_to_spread)):
-         return True
+      if (talkToTransmit):
+          return True
+      else:
+         # This is the chance that their engagement will exchange information
+         if (chance(chance_to_spread)):
+            return True
    return False
 
 def chance(percentage_chance):
