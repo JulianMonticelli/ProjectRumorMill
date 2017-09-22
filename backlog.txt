@@ -12,7 +12,7 @@
 1. Prettify code, multiple files, etc                                 |       2h       |     2     |
 2. Talk != transmit & Talk == transmit                                |       1h       |     2     |
 3. Multiple starting points / random nodes / multiple sims            |       2h       |     2     |
-4. Fix transmit                                                       |       1h       |     1     |
-5. Graph output                                                       |       4h       |     3     |
-6. Tests                                                              |       TBD      |     3     |
+4. Graph output                                                       |       4h       |     3     |
+5. Tests                                                              |       TBD      |     3     |
+6. Graph helper functions - disjoint? betweenness of nodes. Density?  |       6h       |     2     |
 // did I miss something? 
