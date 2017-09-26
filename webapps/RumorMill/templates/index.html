@@ -3,8 +3,40 @@
     <head>
         <meta charset="utf-8">
         <title>Rumor Mill</title>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.20.1/vis.min.js"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.20.1/vis.min.css" rel="stylesheet" type="text/css"/>
+        <style type="text/css">
+            #mynetwork {
+                width: 800px;
+                height: 600px;
+                border: 1px solid lightgray;
+            }
+        </style>
     </head>
     <body>
-        <h1>Hello, World</h1>
+        <div id="mynetwork"></div>
+        <script type="text/javascript">
+            var nodelist = {{nodes|safe}};
+            var edgelist = {{edges|safe}};
+            var n = [];
+            var e = [];
+            for (var i = 0; i < nodelist.length; i++) {
+                var node = {id:nodelist[i][0], label:nodelist[i][1]};
+                n.push(node);
+            }
+            for (var i = 0; i < edgelist.length; i++) {
+                var edge = {from:edgelist[i][0], to:edgelist[i][1]};
+                e.push(edge);
+            }
+            var nodes = new vis.DataSet(n);
+            var edges = new vis.DataSet(e);
+            var container = document.getElementById('mynetwork');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {};
+            var network = new vis.Network(container, data, options);
+        </script>
     </body>
 </html>
