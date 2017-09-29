@@ -28,11 +28,17 @@ import random as rand
 talkToTransmit = True   # Transmission = just talking?
 chance_to_spread = 0.01 # If transmit =/= talk, what is the chance upon talking
 
+# Forgetting variables
+can_node_forget = True
+node_forget_chance = 0.01 # Chance for node to forget
 
-maximum_allowed_simulation_rounds = 10000 # 1 million runs currently
+maximum_allowed_simulation_rounds = 1000 # 1 million runs currently
 num_runs = 10       # Default number of runs
 
 
+####################################################################################
+# Program entry point. Setup, etc.                                                 #
+####################################################################################
 def main():
    # TODO: Program args
    
@@ -40,12 +46,20 @@ def main():
    simulation_graph = nx.read_graphml('simplemodel.graphml')
    
    # Initialize the graph with attributes we need
-   init(simulation_graph)
+   init(simulation_graph, 'n10')
    
    # Run a simulation 100 times
    simulate(simulation_graph, num_runs)
 
-   
+####################################################################################
+
+
+
+
+
+####################################################################################
+# Simulation function - to be changed and altered. Highly volatile.                #
+####################################################################################
 def simulate(graph, num_simulations):
    weight_max = max_weight(graph)
    sum_time = 0
@@ -69,17 +83,36 @@ def simulate(graph, num_simulations):
    else:
       print str(num_simulations) + ' simulations finished. ' + str(num_fails) + ' simulations failed. Average run time: ' + str(sum_time/ (num_simulations - num_fails) ) + ' rounds'
       print 'Average completion rate: ' + str(totalSuccessPercent(graph, total_flagged, num_simulations)) + '%)'
+####################################################################################
 
 
 
+
+####################################################################################
+# Gets a percentage of success based on a graph node count and the number of       #
+# nodes that were flagged.                                                         #
+####################################################################################
 def successPercent(graph, num_flagged):
    return 100 * num_flagged / float(len(graph.node))
+####################################################################################
 
+
+
+####################################################################################
+# Returns the total percentage of success given a graph, the number of flagged     #
+# nodes and the total number of simulations.                                       #
+####################################################################################
 def totalSuccessPercent(graph, num_flagged, num_simulations):
    return 100 * num_flagged / float((len(graph.node) * num_simulations))
+####################################################################################
 
-# Initialize the graph with attributes that are necessary
-def init(graph):
+
+####################################################################################
+# Initialize the graph with attributes that are necessary to run a simulation.     #
+# Takes a graph and a String node (i.e., 'n10') to initialize as flagged.          #
+# Also initializes uninitialized weights on graphs as 1.                           #
+####################################################################################
+def init(graph, node):
    # Give all nodes a false flag
    nx.set_node_attributes(graph, 'flagged', False)
    
@@ -98,9 +131,16 @@ def init(graph):
       #print e
    
    # Set an arbitrary node
-   graph.node['n10']['flagged'] = True
+   graph.node[node]['flagged'] = True
+####################################################################################
 
-# Pass in a graph, get the integer maximum weight of all edges
+
+
+
+
+####################################################################################
+# Pass in a graph, get the integer maximum weight of all edges                     #
+####################################################################################
 def max_weight(graph):
    max_weight = 0
    dict = nx.get_edge_attributes(graph, 'weight')
@@ -108,10 +148,14 @@ def max_weight(graph):
       max_weight = max(max_weight, dict[val])
    #print max_weight
    return max_weight
+####################################################################################
 
 
 
-# A single run of a simulation
+
+####################################################################################
+# A single run of a simulation                                                     #
+####################################################################################
 def run(graph, max_weight):
    # Declare data to gather
    round_num = 0
@@ -132,15 +176,30 @@ def run(graph, max_weight):
       return round_num,num_flags
    else:
       return -1,num_flags # Fail code
+####################################################################################
 
 
-# A step in the simulation
+
+
+####################################################################################
+# A step in the simulation                                                         #
+####################################################################################
 def round(graph, round_num, max_weight):
    graphcopy = copy.deepcopy(graph)
    given_flags = 0
+   forgot_flags = 0
    for n in nx.nodes(graph):
       # For directed graphs, consider flagged only
       if (graph.node[n]['flagged']):
+         
+         # Node forgetting
+         if (can_node_forget):
+            if (chance(node_forget_chance)):
+                # Wipe flag from both graph and graphcopy
+                graph.node[n]['flagged'] = False
+                graphcopy.node[n]['flagged'] = False
+                forgot_flags += 1
+                break # Skip this node because it no longer has a flag
 
          # Check the unedited copy graph for flagged neighbors
          for g in graphcopy.edge[n]:
@@ -157,10 +216,14 @@ def round(graph, round_num, max_weight):
                   # Increment the number of given_flags this round
                   given_flags += 1
                   #print '[' + g + ']: ' + str(graph.node[g]['flagged']
-   return given_flags
+   return given_flags-forgot_flags # TODO: return forgot flags and given flags
+####################################################################################
 
 
-# Returns an integer value with the number of flagged nodes
+
+####################################################################################
+# Returns an integer value with the number of flagged nodes                        #
+####################################################################################
 def num_flagged(graph):
    num_flagged = 0
    nodes = nx.get_node_attributes(graph, 'flagged')
@@ -168,8 +231,13 @@ def num_flagged(graph):
       if (nodes[val]):
          num_flagged += 1
    return num_flagged
+################################################################
 
-# Determine if a given source node will transmit information to a given node
+
+
+####################################################################################
+# Determine if a given source node will transmit information to a given node       #
+####################################################################################
 def will_spread(source, dest, graph, max_weight):
    # TODO: Add more dynamic way to spread flags from nodes to nodes
    
@@ -185,7 +253,11 @@ def will_spread(source, dest, graph, max_weight):
          if (chance(chance_to_spread)):
             return True
    return False
+####################################################################################
 
+####################################################################################
+# Given a percentage chance (0.0 - 1.0), roll for that chance.                     #
+####################################################################################
 def chance(percentage_chance):
    if (percentage_chance > 1):
       print 'Percentage chance should never be MORE than 1. Even if you want 100% rolls.'
@@ -195,12 +267,27 @@ def chance(percentage_chance):
       return False
    if (rand.random() <= percentage_chance):
       return True
+####################################################################################
 
-	  
+
+####################################################################################
+# Rolls a chance that nodes will communicate given the weight of an edge and       #
+# a given maximum weight (chance = given/maximum)                                  #
+####################################################################################
+
 def roll_weight(curr_weight, max_weight):
    # Returns the likelihood of engagement based on weight of graph nodes
    return rand.randint(0, max_weight) > max_weight - curr_weight
 
+
+####################################################################################
+
+
+
+
+####################################################################################
+# Determines whether or not a graph is finished                                    #
+####################################################################################
 def finished(graph, current_round):
    # Get all attributes and store them in a dictionary
    dict = nx.get_node_attributes(graph, 'flagged')
@@ -217,9 +304,11 @@ def finished(graph, current_round):
    return 1 # 1 is a successful graph
 
 
-class Node:
-   flagged = False
+####################################################################################
 
+
+###########################
+# END OF FUNCTIONS.       #
 ###########################
 if __name__ == "__main__":
    main()
