@@ -204,35 +204,13 @@ def init(graph, node):
 # Pass in a graph, get the integer maximum weight of all edges                     #
 ####################################################################################
 def max_weight(graph):
-   max_weight = 0
+   max_weight = float('-inf')
    dict = nx.get_edge_attributes(graph, 'weight')
    for val in dict:
       max_weight = max(max_weight, dict[val])
    if (DEBUG_SEVERE):
       print '[DEBUG]: max_weight of ' + str(graph) + ' is ' + str(max_weight)
    return max_weight
-####################################################################################
-
-
-
-####################################################################################
-# Determine if a given source node will transmit information to a given node       #
-####################################################################################
-def will_spread(source, dest, graph, max_weight):
-   # TODO: Add more dynamic way to spread flags from nodes to nodes
-   
-   # Get current weight
-   curr_weight = graph.edge[source][dest]['weight']
-   
-   # Will they engage at all? This consults the weight of their edge
-   if ( roll_weight (curr_weight , max_weight ) ):
-      if (talkToTransmit):
-          return True
-      else:
-         # This is the chance that their engagement will exchange information
-         if (chance(chance_to_spread)):
-            return True
-   return False
 ####################################################################################
 
 
@@ -249,19 +227,6 @@ def chance(percentage_chance):
       return False
    if (rand.random() <= percentage_chance):
       return True
-####################################################################################
-
-
-
-####################################################################################
-# Rolls a chance that nodes will communicate given the weight of an edge and       #
-# a given maximum weight (chance = given/maximum)                                  #
-####################################################################################
-
-def roll_weight(curr_weight, max_weight):
-   # Returns the likelihood of engagement based on weight of graph nodes
-   return rand.randint(0, max_weight) > max_weight - curr_weight
-
 ####################################################################################
 
 
