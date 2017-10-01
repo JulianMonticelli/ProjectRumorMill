@@ -45,7 +45,7 @@ num_runs = 3      # Default number of runs per simulation
 LOGGING = True # Keep the user informed of what is going on, generally
 DEBUG = False # General debug info
 DEBUG_SEVERE = False # Output information at each step if it can be done
-
+asterisk_space_count = 35
 
 ####################################################################################
 # Program entry point. Setup, etc.                                                 #
@@ -63,6 +63,8 @@ def main():
 
 
 def simulation_dispatcher(graph):
+   output_graph_information(graph)
+
    total_rounds = 0
    total_flagged = 0
    total_max_flags = 0
@@ -92,9 +94,9 @@ def simulation_dispatcher(graph):
    if (total_successes > 0):
       average_rounds = total_successes / float(num_simulations) * 100
    print '\n' * 2
-   print '*' * 27
+   print '*' * asterisk_space_count
    print 'Simulations complete.'
-   print '*' * 27
+   print '*' * asterisk_space_count
    print 'Total successful simulations (spread across whole graph): ' + str(total_successes)
    print 'Total failed simulations (could not spread across graph): ' + str(total_fails)
    print 'Total number of simulations (complete and incomplete):    ' + str(total_simulations)
@@ -227,6 +229,19 @@ def chance(percentage_chance):
       return False
    if (rand.random() <= percentage_chance):
       return True
+####################################################################################
+
+
+
+####################################################################################
+# Dumps information about the given graph.                                         #
+####################################################################################
+def output_graph_information(graph):
+   print '*' * asterisk_space_count
+   print 'Graph has ' + str(graph.number_of_nodes()) + ' node(s) and ' + str(graph.number_of_edges()) + ' edge(s).'
+   print 'Density: ' + str(nx.density(graph))
+   #print 'Betweenness centrality: ' + str(nx.betweenness_centrality(graph)) # It can be done!
+   print '*' * asterisk_space_count
 ####################################################################################
 
 

@@ -7,14 +7,8 @@ import sim
 # Run in command line as 'pytest simtest.py' if you are not familiar with pytest
 # You will need to pip install pytest if you don't have it installed.
 
-# Tests percentage function
-def test_percent():
-   assert sim.percent(3, 4) == 75.0
-   assert sim.percent(3, 5) == 60.0
-   
-
-# Tests max_weight against a newly constructed graph
-def test_max_weight_normal():
+@pytest.fixture(scope='function')
+def setup_graph_positive():
    g = nx.Graph()
    g.add_node(1)
    g.add_node(2)
@@ -26,9 +20,10 @@ def test_max_weight_normal():
    g.add_edge(4, 5, weight=3)
    g.add_edge(1, 5, weight=7)
    g.add_edge(2, 4, weight=4)
-   assert sim.max_weight(g) == 9
+   return g
 
-def test_max_weight_negative():
+@pytest.fixture(scope='function')
+def setup_graph_negative():
    g = nx.Graph()
    g.add_node(1)
    g.add_node(2)
@@ -40,6 +35,21 @@ def test_max_weight_negative():
    g.add_edge(4, 5, weight=-3)
    g.add_edge(1, 5, weight=-7)
    g.add_edge(2, 4, weight=-4)
+   return g
+   
+# Tests percentage function
+def test_percent():
+   assert sim.percent(3, 4) == 75.0
+   assert sim.percent(3, 5) == 60.0
+   
+
+# Tests max_weight against a newly constructed graph
+def test_max_weight_normal():
+   g = setup_graph_positive()
+   assert sim.max_weight(g) == 9
+
+def test_max_weight_negative():
+   g = setup_graph_negative()
    assert sim.max_weight(g) == -3
 
 
