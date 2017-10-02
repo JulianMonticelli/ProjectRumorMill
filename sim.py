@@ -32,9 +32,12 @@ talkToTransmit = True   # Transmission = just talking?
 chance_to_spread = 0.20 # If transmit =/= talk, what is the chance upon talking
 
 # Forgetting variables
-can_node_forget = True
-node_forget_chance = 0.005 # Chance for node to forget
+spontaneous_forget = True          # Node can forget
+spontaneous_forget_chance = 0.005      # Chance for node to forget
 
+# Spontaneous acquisition
+spontaneous_acquisition = True  # Nodes can spontaneously become flagged
+spontaneous_acquisition_chance = 0.01
 
 # Simulation arguments
 maximum_allowed_simulation_rounds = 100 # Max amount of rounds before we stop running a simulation
@@ -88,11 +91,9 @@ def simulation_dispatcher(graph):
    percent_finished = percent(total_successes, total_simulations)
    percent_flagged = total_percent_flagged(graph, total_flagged, total_simulations)
    
-   
-   
    average_rounds = 0
    if (total_successes > 0):
-      average_rounds = total_successes / float(num_simulations) * 100
+      average_rounds = total_successes / float(total_simulations) * 100
    print '\n' * 2
    print '*' * asterisk_space_count
    print 'Simulations complete.'
@@ -119,7 +120,7 @@ def simulate(graph, num_simulations):
    
    while (current_run <= num_simulations):
       graph_instance = copy.deepcopy(graph)
-      run_time,num_flagged = run.run(graph_instance, weight_max)
+      run_time,num_flagged = run.run(graph_instance, weight_max, maximum_allowed_simulation_rounds, spontaneous_forget, spontaneous_acquisition)
       total_flagged += num_flagged
 	  
 	  # WARNING: Incomplete graphs return -1, so no sum_time is added
@@ -240,6 +241,11 @@ def output_graph_information(graph):
    print '*' * asterisk_space_count
    print 'Graph has ' + str(graph.number_of_nodes()) + ' node(s) and ' + str(graph.number_of_edges()) + ' edge(s).'
    print 'Density: ' + str(nx.density(graph))
+   print 'Max weight of edges: ' + str(max_weight(graph))
+   if nx.is_connected(graph):
+      print 'Graph is completely connected.'
+   else:
+      print 'Graph is disjoint.'
    #print 'Betweenness centrality: ' + str(nx.betweenness_centrality(graph)) # It can be done!
    print '*' * asterisk_space_count
 ####################################################################################

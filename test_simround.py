@@ -26,7 +26,7 @@ def test_round_spread_no_leak():
    g = setup_graph()
    g.node['1']['flagged'] = True
    num_before = run.num_flagged(g)
-   round.round(g, 1, 1)
+   round.round(g, 1, 1, False, False)
    num_after = run.num_flagged(g)
    assert (num_after - num_before) == 1
    
@@ -35,7 +35,7 @@ def test_round_spread_no_leak_2():
    g = setup_graph()
    g.node['3']['flagged'] = True
    num_before = run.num_flagged(g)
-   round.round(g, 1, 1)
+   round.round(g, 1, 1, False, False)
    num_after = run.num_flagged(g)
    assert (num_after - num_before) == 2
    
