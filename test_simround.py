@@ -47,7 +47,13 @@ def test_roll_weight():
          num_passed += 1
    perc_passed = num_passed / float(num)
    assert perc_passed >= .59 and perc_passed <= .61
-   
+
+def test_will_spread():
+   g = setup_graph()
+   g.node['2']['flagged'] = True
+   assert round.will_spread('2', '1', g, 1)
+   assert round.will_spread('2', '3', g, 1)
+
 def test_roll_weight_zero():
    num = 1000000
    num_passed = 0

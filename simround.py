@@ -30,7 +30,7 @@ def round(graph, round_num, max_weight, spontaeous_forget, spontaneous_acquisiti
             # If a target graph node in both the copy and original aren't flagged
             if (not graphcopy.node[g]['flagged'] and not graph.node[g]['flagged']):
 
-			   #############################DEBUG##########################################
+               #############################DEBUG##########################################
                if (sim.DEBUG_SEVERE):
                   print '[DEBUG]: graph and graphcopy of node ' + str(g) +  ' unflagged...'
                ############################################################################

@@ -33,7 +33,7 @@ chance_to_spread = 0.20 # If transmit =/= talk, what is the chance upon talking
 
 # Forgetting variables
 spontaneous_forget = True          # Node can forget
-spontaneous_forget_chance = 0.005      # Chance for node to forget
+spontaneous_forget_chance = 0.01      # Chance for node to forget
 
 # Spontaneous acquisition
 spontaneous_acquisition = True  # Nodes can spontaneously become flagged
@@ -58,6 +58,7 @@ def main():
    
    # Read in a graph
    simulation_graph = nx.read_graphml('simplemodel.graphml')
+   #simulation_graph = nx.read_graphml('custom_graphs/test1.graphml')
    
    # Dispatch a simulation (multiple simulation runs with different nodes)
    simulation_dispatcher(simulation_graph)
