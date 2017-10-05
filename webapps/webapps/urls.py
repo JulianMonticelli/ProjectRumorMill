@@ -21,4 +21,6 @@ import RumorMill.views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', RumorMill.views.home),
+    url(r'^runsim$', RumorMill.views.runsim),
+    url(r'^cs1571vis$', RumorMill.views.cs1571vis),
 ]

@@ -15,6 +15,7 @@
     </head>
     <body>
         <div id="mynetwork"></div>
+        <a href="/runsim" type="button">Run simulation</a>
         <script type="text/javascript">
             var nodelist = {{nodes|safe}};
             var edgelist = {{edges|safe}};
@@ -35,6 +36,15 @@
                 nodes: nodes,
                 edges: edges
             };
+            for (var i = 0; i < nodelist.length; i++) {
+                if (nodelist[i][2] == 1) {
+                    currnode = nodes.get(nodelist[i][0]);
+                    currnode.color = {
+                        background: 'red'
+                    };
+                    nodes.update(currnode);
+                }
+            }
             var options = {};
             var network = new vis.Network(container, data, options);
         </script>
