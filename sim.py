@@ -25,23 +25,8 @@ import networkx as nx   # GraphML
 import random as rand
 
 # External file dependencies
+import defaults
 import simrun as run
-
-# Transmission variables
-talkToTransmit = True   # Transmission = just talking?
-chance_to_spread = 0.20 # If transmit =/= talk, what is the chance upon talking
-
-# Forgetting variables
-spontaneous_forget = True          # Node can forget
-spontaneous_forget_chance = 0.01      # Chance for node to forget
-
-# Spontaneous acquisition
-spontaneous_acquisition = True  # Nodes can spontaneously become flagged
-spontaneous_acquisition_chance = 0.01
-
-# Simulation arguments
-maximum_allowed_simulation_rounds = 100 # Max amount of rounds before we stop running a simulation
-num_runs = 3      # Default number of runs per simulation
 
 
 # Debug/logging
@@ -80,12 +65,12 @@ def simulation_dispatcher(graph):
    for n in graph.node:
       graphcopy = copy.deepcopy(graph)
       init(graphcopy, n)
-      flagged, max_flags, sum_rounds, num_fails = simulate(graphcopy, num_runs)
+      flagged, max_flags, sum_rounds, num_fails = simulate(graphcopy, defaults.num_runs)
       total_rounds += sum_rounds
       total_flagged += flagged
       total_max_flags += max_flags
       total_fails += num_fails
-      total_simulations += num_runs
+      total_simulations += defaults.num_runs
       
    total_successes = total_simulations-total_fails
    
@@ -121,7 +106,7 @@ def simulate(graph, num_simulations):
    
    while (current_run <= num_simulations):
       graph_instance = copy.deepcopy(graph)
-      run_time,num_flagged = run.run(graph_instance, weight_max, maximum_allowed_simulation_rounds, spontaneous_forget, spontaneous_acquisition)
+      run_time,num_flagged = run.run(graph_instance, weight_max, defaults.maximum_allowed_simulation_rounds)
       total_flagged += num_flagged
 	  
 	  # WARNING: Incomplete graphs return -1, so no sum_time is added
@@ -136,7 +121,7 @@ def simulate(graph, num_simulations):
 
       current_run += 1
    if (num_simulations == num_fails): # Avoid division by 0
-      print 'All runs failed. maximum_allowed_simulation_rounds = ' + str(maximum_allowed_simulation_rounds) + ' (Average completion rate: ' + str(total_percent_flagged(graph, total_flagged, num_simulations)) + '%)'
+      print 'All runs failed. maximum_allowed_simulation_rounds = ' + str(defaults.maximum_allowed_simulation_rounds) + ' (Average completion rate: ' + str(total_percent_flagged(graph, total_flagged, num_simulations)) + '%)'
    else:
       print str(num_simulations) + ' simulations finished. ' + str(num_fails) + ' simulations failed. Average run time: ' + str(sum_time/ (num_simulations - num_fails) ) + ' rounds'
       print 'Average completion rate: ' + str(total_percent_flagged(graph, total_flagged, num_simulations)) + '%)'
@@ -183,10 +168,10 @@ def total_percent_flagged(graph, num_flagged, num_simulations):
 def init(graph, node):
    # Let the user know what node is the starting node.
    if (LOGGING or DEBUG or DEBUG_SEVERE):
-      print '\n' + '*' * 35 + '\nInitializing graph - \'' + str(node) + '\' is in the know.'
+      print '\n' + '*' * asterisk_space_count + '\nInitializing graph - \'' + str(node) + '\' is in the know.'
 
    # Give all nodes a false flag
-   nx.set_node_attributes(graph, 'flagged', False)
+   create_node_attribute(graph, 'flagged', False)
    
    # Get graph-given weight attributes and save them
    dict = nx.get_edge_attributes(graph, 'weight')
@@ -249,6 +234,70 @@ def output_graph_information(graph):
       print 'Graph is disjoint.'
    #print 'Betweenness centrality: ' + str(nx.betweenness_centrality(graph)) # It can be done!
    print '*' * asterisk_space_count
+####################################################################################
+
+
+
+####################################################################################
+# Creates an attribute with an initial value.                                      #
+####################################################################################
+def create_node_attribute(graph, attr, init_value):
+   nx.set_node_attributes(graph, attr, init_value)
+####################################################################################
+
+
+
+####################################################################################
+# Randomizes attributes of all nodes in a graph to a value in a specified range.   #
+####################################################################################
+def randomize_node_attribute(graph, attr, low, high):
+   for node in graph.node:
+      graph.node[node][attr] = rand.randint(low, high)
+####################################################################################
+
+
+
+####################################################################################
+# Randomizes node attribute boolean values given a percentage that node attributes #
+# are set to true.                                                                 #
+####################################################################################
+def randomize_node_attribute_boolean(graph, attr, true_chance):
+   for node in graph.node:
+      graph.node[node][attr] = chance(true_chance)
+####################################################################################
+
+
+
+####################################################################################
+# Creates an attribute with an initial value.                                      #
+####################################################################################
+def create_edge_attribute(graph, attr, init_value):
+   nx.set_edge_attributes(graph, attr, init_value)
+####################################################################################
+
+
+
+####################################################################################
+# Randomizes attributes of all nodes in a graph to a value in a specified range.   #
+####################################################################################
+def randomize_edge_attribute(graph, attr, low, high):
+   for source in graph.edge:
+      for dest in graph.edge[source]:
+            if source < dest or nx.is_directed(graph):
+               graph.edge[source][dest][attr] = rand.randint(low, high)
+####################################################################################
+
+
+
+####################################################################################
+# Randomizes node attribute boolean values given a percentage that node attributes #
+# are set to true.                                                                 #
+####################################################################################
+def randomize_edge_attribute_boolean(graph, attr, true_chance):
+   for source in graph.edge:
+      for dest in graph.edge[source]:
+         if source < dest or nx.is_directed(graph):
+            graph.edge[source][dest][attr] = chance(true_chance)
 ####################################################################################
 
 

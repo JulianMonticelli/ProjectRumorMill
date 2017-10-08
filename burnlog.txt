@@ -1,5 +1,0 @@
-Prototype completed - Julian 
-User stories and project proposal completed - Emily 
-Fixed transmission - Julian
-Web visualization tool created - Tianjian
-Tests & Forget/Acquire/Graph info - Julian

@@ -2,6 +2,7 @@ import networkx as nx
 
 # External dependencies
 import sim
+import defaults
 import simround as round
 
 
@@ -9,7 +10,13 @@ import simround as round
 ####################################################################################
 # A single run of a simulation                                                     #
 ####################################################################################
-def run(graph, max_weight, max_allowed_rounds, spontaneous_forget, spontaneous_acquisition):
+def run(graph, max_weight, max_allowed_rounds, 
+        talk_to_transmit=defaults.talk_to_transmit,
+        transmit_chance=defaults.transmit_chance,
+        spontaneous_forget=defaults.spontaneous_forget,
+        spontaneous_forget_chance=defaults.spontaneous_forget_chance,
+        spontaneous_acquisition=defaults.spontaneous_acquisition,
+        spontaneous_acquisition_chance=defaults.spontaneous_acquisition_chance):
    # Declare data to gather
    round_num = 0
    num_flags = num_flagged(graph)
@@ -22,7 +29,7 @@ def run(graph, max_weight, max_allowed_rounds, spontaneous_forget, spontaneous_a
 
       # Run the round and return the number of successes and add it to the total_successes
       #print round_num #
-      num_flags += round.round(graph, round_num, max_weight, spontaneous_forget, spontaneous_acquisition)
+      num_flags += round.round(graph, round_num, max_weight) # Assumes global variables in sim.py
 
    # Check why we quit the simulation
    if (finished(graph, round_num, max_allowed_rounds) > 0): # If we've finished the graph

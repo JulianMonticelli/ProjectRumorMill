@@ -77,14 +77,14 @@ def test_run_failed_out_of_rounds():
 def test_sim_round_num_flagged_forgetting_acquisition():
    for i in range (0, 50):
       g = setup_long_chain_graph(True, False, 0)
-      throwaway, num_flagged = run.run(g, 1, 2000, True, True)
+      throwaway, num_flagged = run.run(g, 1, 2000, talk_to_transmit=True, spontaneous_acquisition=True, spontaneous_acquisition_chance=.01, spontaneous_forget=True, spontaneous_forget_chance=.01)
       assert num_flagged == run.num_flagged(g)
 
 # Tests to make sure that a num_flagged error doesn't happen when considering spontaneous forgetting
 def test_sim_round_num_flagged_forgetting():
    for i in range (0, 50):
       g = setup_short_chain_graph(True, False, 0)
-      throwaway, num_flagged = run.run(g, 1, 1000, True, False)
+      throwaway, num_flagged = run.run(g, 1, 1000, talk_to_transmit=True, spontaneous_acquisition=False, spontaneous_forget=True, spontaneous_forget_chance=.01)
       assert num_flagged == run.num_flagged(g)
 
 
@@ -92,5 +92,5 @@ def test_sim_round_num_flagged_forgetting():
 def test_sim_round_num_flagged_acquisition():
    for i in range (0, 50):
      g = setup_short_chain_graph(False, True, 0)
-     throwaway, num_flagged = run.run(g, 1, 1000, False, True)
+     throwaway, num_flagged = run.run(g, 1, 1000, talk_to_transmit=True, spontaneous_acquisition=True, spontaneous_acquisition_chance=.01, spontaneous_forget=False)
      assert num_flagged == run.num_flagged(g)
