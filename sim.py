@@ -88,7 +88,7 @@ def simulation_dispatcher(graph):
    print 'Total failed simulations (could not spread across graph): ' + str(total_fails)
    print 'Total number of simulations (complete and incomplete):    ' + str(total_simulations)
    print '\n'
-   print 'Average rounds until completion (across ' + str(total_successes) +' simulation runs): ' + str(average_rounds)
+   print 'Average rounds until completion (across ' + str(total_successes) +' simulation runs): ' + str(average_rounds) + '%'
    print 'Average graph completion rate (across all graphs): ' + str(percent_finished) + '%'
    print 'Average graph spread rate (across all graphs): ' + str(percent_flagged) + '%'
 
@@ -112,11 +112,11 @@ def simulate(graph, num_simulations):
 	  # WARNING: Incomplete graphs return -1, so no sum_time is added
       if (run_time < 0):
          if (LOGGING or DEBUG or DEBUG_SEVERE):
-            print 'Run ' + str(current_run) + ' failed! ' + str(num_flagged) + '/' + str(len(graph.node)) + ' flagged. (' + str(percent_flagged(graph, num_flagged)) + '% complete)'
+            print 'Run ' + str(current_run) + ' failed to spread across graph! ' + str(num_flagged) + '/' + str(len(graph.node)) + ' flagged. (' + str(percent_flagged(graph, num_flagged)) + '% complete)'
          num_fails += 1
       else:
          if (LOGGING or DEBUG or DEBUG_SEVERE):
-            print 'Run ' + str(current_run) + ' took ' + str(run_time) + ' rounds. ' + str(len(graph.node)) + '/' + str(len(graph.node)) + ' flagged. (100% complete)'
+            print 'Run ' + str(current_run) + ' took ' + str(run_time) + ' rounds. ' + str(num_flagged) + '/' + str(len(graph.node)) + ' flagged. (' + str(percent(num_flagged, len(graph.node))) + '% complete)'
          sum_time += run_time
 
       current_run += 1
@@ -173,12 +173,13 @@ def init(graph, node):
    # Give all nodes a false flag
    create_node_attribute(graph, 'flagged', False)
    
-   # Get graph-given weight attributes and save them
+   # Save edge weight, as we are going to wipe graph
    dict = nx.get_edge_attributes(graph, 'weight')
    
    # Write 1 weight to all edges
    nx.set_edge_attributes(graph, 'weight', 1)
    
+   # Restore initial edges
    for n1,n2 in dict:
       graph.edge[n1][n2]['weight'] = dict[n1,n2]
    

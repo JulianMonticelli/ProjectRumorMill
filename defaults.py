@@ -4,7 +4,9 @@
 # sim.py to avoid circular dependencies.
 #
 
-# Simulation arguments
+#######################
+# Simulation arguments#
+#######################
 maximum_allowed_simulation_rounds = 100 # Max amount of rounds before we stop running a simulation
 num_runs = 3      # Default number of runs per simulation
 
@@ -19,3 +21,13 @@ spontaneous_forget_chance = 0.01      # Chance for node to forget
 # Spontaneous acquisition
 spontaneous_acquisition = True  # Nodes can spontaneously become flagged
 spontaneous_acquisition_chance = 0.01
+
+#######################
+# Round options       #
+#######################
+
+# Whether or not a graph is considered finished if,
+# when spontaneous acquisition is not occurring,
+# information has spread to all nodes that can become
+# spread to.
+finished_includes_max_subgraph_spread=True
