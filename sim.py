@@ -5,9 +5,9 @@
 # ==================
 # Project Director:
 # Michael Bigrigg
-# 
+#
 # Team Members:
-# Emily Hannah
+# Emily Hanna
 # Tianjian Meng
 # Julian Monticelli
 #######################
@@ -27,6 +27,7 @@ import random as rand
 # External file dependencies
 import defaults
 import simrun as run
+import graph_metrics as gm
 
 
 # Debug/logging
@@ -40,11 +41,11 @@ asterisk_space_count = 35
 ####################################################################################
 def main():
    # TODO: Program args
-   
+
    # Read in a graph
    simulation_graph = nx.read_graphml('simplemodel.graphml')
    #simulation_graph = nx.read_graphml('custom_graphs/test1.graphml')
-   
+
    # Dispatch a simulation (multiple simulation runs with different nodes)
    simulation_dispatcher(simulation_graph)
 
@@ -60,7 +61,7 @@ def simulation_dispatcher(graph):
    total_fails = 0
    total_simulations = 0
    total_successes = 0
-   
+
    # Start from every node in the graph
    for n in graph.node:
       graphcopy = copy.deepcopy(graph)
@@ -71,12 +72,12 @@ def simulation_dispatcher(graph):
       total_max_flags += max_flags
       total_fails += num_fails
       total_simulations += defaults.num_runs
-      
+
    total_successes = total_simulations-total_fails
-   
+
    percent_finished = percent(total_successes, total_simulations)
    percent_flagged = total_percent_flagged(graph, total_flagged, total_simulations)
-   
+
    average_rounds = 0
    if (total_successes > 0):
       average_rounds = total_successes / float(total_simulations) * 100
@@ -93,7 +94,7 @@ def simulation_dispatcher(graph):
    print 'Average graph spread rate (across all graphs): ' + str(percent_flagged) + '%'
 
 
-   
+
 ####################################################################################
 # Simulation function - to be changed and altered. Highly volatile.                #
 ####################################################################################
@@ -103,12 +104,12 @@ def simulate(graph, num_simulations):
    num_fails = 0
    current_run = 1
    total_flagged = 0
-   
+
    while (current_run <= num_simulations):
       graph_instance = copy.deepcopy(graph)
       run_time,num_flagged = run.run(graph_instance, weight_max, defaults.maximum_allowed_simulation_rounds)
       total_flagged += num_flagged
-	  
+
 	  # WARNING: Incomplete graphs return -1, so no sum_time is added
       if (run_time < 0):
          if (LOGGING or DEBUG or DEBUG_SEVERE):
@@ -172,18 +173,18 @@ def init(graph, node):
 
    # Give all nodes a false flag
    create_node_attribute(graph, 'flagged', False)
-   
+
    # Save edge weight, as we are going to wipe graph
    dict = nx.get_edge_attributes(graph, 'weight')
-   
+
    # Write 1 weight to all edges
    nx.set_edge_attributes(graph, 'weight', 1)
-   
+
    # Restore initial edges
    for n1,n2 in dict:
       graph.edge[n1][n2]['weight'] = dict[n1,n2]
-   
-   
+
+
    # Set an arbitrary node
    graph.node[node]['flagged'] = True
 ####################################################################################
@@ -213,7 +214,7 @@ def chance(percentage_chance):
       print 'Percentage chance should never be MORE than 1. Even if you want 100% rolls.'
       return True
    if (percentage_chance <= 0):
-      print 'Percentage chance being less than or equal to 0 will always reslult in a failure.' 
+      print 'Percentage chance being less than or equal to 0 will always reslult in a failure.'
       return False
    if (rand.random() <= percentage_chance):
       return True
@@ -225,16 +226,25 @@ def chance(percentage_chance):
 # Dumps information about the given graph.                                         #
 ####################################################################################
 def output_graph_information(graph):
+
+   gm.read_in_graph(graph)
+   dicti = gm.full_run_through(graph)
    print '*' * asterisk_space_count
-   print 'Graph has ' + str(graph.number_of_nodes()) + ' node(s) and ' + str(graph.number_of_edges()) + ' edge(s).'
-   print 'Density: ' + str(nx.density(graph))
+   gm.print_results()
    print 'Max weight of edges: ' + str(max_weight(graph))
-   if nx.is_connected(graph):
-      print 'Graph is completely connected.'
-   else:
-      print 'Graph is disjoint.'
-   #print 'Betweenness centrality: ' + str(nx.betweenness_centrality(graph)) # It can be done!
+
    print '*' * asterisk_space_count
+
+
+   # print 'Graph has ' + str(graph.number_of_nodes()) + ' node(s) and ' + str(graph.number_of_edges()) + ' edge(s).'
+   # print 'Density: ' + str(nx.density(graph))
+   # print 'Max weight of edges: ' + str(max_weight(graph))
+   # if nx.is_connected(graph):
+   #    print 'Graph is completely connected.'
+   # else:
+   #    print 'Graph is disjoint.'
+   # #print 'Betweenness centrality: ' + str(nx.betweenness_centrality(graph)) # It can be done!
+   # print '*' * asterisk_space_count
 ####################################################################################
 
 
