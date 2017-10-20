@@ -1,3 +1,6 @@
 {
+  "test_sim.py": true, 
+  "test_simround.py": true, 
+  "test_simrun.py": true, 
   "test_simrun.py::test_finished_subgraph_finished": true
 }
