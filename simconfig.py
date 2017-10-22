@@ -226,7 +226,7 @@ def will_spread(
 # Hook for changing the graph at the beginning of the round. Note that this takes  #
 # place before the graph is copied in the engine.                                  #
 ####################################################################################
-def before_round_start(graph):
+def before_round_start(graph, max_weight):
    return
    #for edge in graph.edge:
       # do something
@@ -277,11 +277,8 @@ def init(graph, node):
 ####################################################################################
 # Determines whether or not a graph is finished.                                   #
 ####################################################################################
-def finished(
-             graph, current_round, max_allowed_rounds,
-			 finished_includes_max_subgraph_spread=finished_includes_max_subgraph_spread,
-             spontaneous_acquisition = spontaneous_acquisition,
-			 spontaneous_acquisition_chance = spontaneous_acquisition_chance
+def finished_hook(
+             graph, current_round, max_allowed_rounds
             ):
    # Get all attributes and store them in a dictionary
    dict = nx.get_node_attributes(graph, 'flagged')
@@ -310,3 +307,13 @@ def finished(
 ####################################################################################
 
 
+
+####################################################################################
+# Determines whether or not a graph is finished.                                   #
+####################################################################################
+def on_finished(finish_code, round_num, num_flags):
+   if (finish_code == 0): # If we've finished the graph
+      return round_num,num_flags
+   else:
+      return -1,num_flags # Sim Engine expects -1 to indicate a failure
+####################################################################################

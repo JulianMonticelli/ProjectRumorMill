@@ -94,17 +94,14 @@ def run(
    # TODO: Variable finished condition for easy hook mod
    # Run loop
    
-   while(config.finished(graph, round_num, max_allowed_rounds) == 0):
+   while(config.finished_hook(graph, round_num, max_allowed_rounds) == 0):
       round_num += 1
 
       # Run the round and return the number of successes and add it to total_successes
       num_flags += round(graph, round_num, max_weight)
 
    # Check why we quit the simulation
-   if (config.finished(graph, round_num, max_allowed_rounds) > 0): # If we've finished the graph
-      return round_num,num_flags
-   else:
-      return -1,num_flags # Fail code
+   return config.on_finished(config.finished_hook(graph, round_num, max_allowed_rounds), round_num, num_flags)
 ####################################################################################
 
 
@@ -116,8 +113,9 @@ def round (
           graph, round_num, max_weight
           ):
 		  
-   config.before_round_start(graph) # DOES NOT alter max_weight!
+   config.before_round_start(graph, max_weight)
    
+   # Deep copy graph after pre-round graph changes
    graph_copy = copy.deepcopy(graph)
    
    given_flags = 0
