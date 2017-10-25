@@ -126,7 +126,10 @@ def round (
       given_flags += delta_given_flags
       removed_flags += delta_removed_flags
 	  
-   config.after_round_end(graph)
+   delta_given_flags, delta_removed_flags = config.after_round_end(graph)
+   given_flags += delta_given_flags
+   removed_flags += delta_removed_flags
+   
    
    return given_flags-removed_flags # TODO: return forgot flags and given flags?
 ####################################################################################

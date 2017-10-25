@@ -89,7 +89,7 @@ def simulation_driver():
 def on_node(graph, graph_copy, node, max_weight):
    given_flags = 0
    removed_flags = 0
-   if(will_forget(graph, graph_copy, node, 'flagged', spontaneous_forget, spontaneous_forget_chance)):
+   if(will_forget(graph, graph_copy, node, 'flagged')):
       removed_flags += 1 # Update amount of forgotten flags
       return given_flags, removed_flags
       # IMPORTANT: So that directed graphs work as well as undirected graphs, consider flagged only
@@ -99,7 +99,7 @@ def on_node(graph, graph_copy, node, max_weight):
 
       # If the node does not know, and we can spontaneously come into knowing
    else:
-      given_flags += on_not_flagged(graph, graph_copy, node, spontaneous_acquisition, spontaneous_acquisition_chance)
+      given_flags += on_not_flagged(graph, graph_copy, node)
    return given_flags, removed_flags
 ####################################################################################
 
@@ -108,23 +108,14 @@ def on_node(graph, graph_copy, node, max_weight):
 ####################################################################################
 # Runs operations on a flagged node to determine if it will transmit information.  #
 ####################################################################################
-def on_flagged(graph, graph_copy, node, max_weight,
-               talk_to_transmit=talk_to_transmit,
-               transmit_chance=transmit_chance
-               ):
+def on_flagged(graph, graph_copy, node, max_weight):
    given_flags = 0
    
-   # Debug
-   if (defaults.DEBUG_SEVERE):
-      print '[defaults.DEBUG]: Node ' + str(node) + ' is flagged.'
-
    # Check the unedited copy graph for flagged neighbors
    for neighbor in graph_copy.edge[node]:
       # If a target graph node in both the copy and original aren't flagged
       if (not graph_copy.node[neighbor]['flagged'] and not graph.node[neighbor]['flagged']):
-         # Debug
-         if (defaults.DEBUG_SEVERE):
-            print '[defaults.DEBUG]: Neigbor ' + str(neighbor) +  ' unflagged - ',
+         
          # If the simulation will actually spread, then spread
          if (will_spread(node, neighbor, graph, max_weight, talk_to_transmit, transmit_chance)):
             graph.node[neighbor]['flagged'] = True
@@ -132,13 +123,6 @@ def on_flagged(graph, graph_copy, node, max_weight,
             # Increment the number of given_flags this round
             given_flags += 1
 
-            # Debug output that we flagged
-            if (defaults.DEBUG_SEVERE):
-               print 'flagged node ' + str(neighbor) + '.'
-
-         # If we cannot acquire...
-         if (defaults.DEBUG_SEVERE): # Output no change has been made
-            print 'no action taken.'
    return given_flags			
 ####################################################################################
 
@@ -147,51 +131,8 @@ def on_flagged(graph, graph_copy, node, max_weight,
 ####################################################################################
 # Currently will only check whether or not spontaneous acquisition will occur.     #
 ####################################################################################
-def on_not_flagged(graph, graph_copy, node,
-                   spontaneous_acquisition=spontaneous_acquisition,
-                   spontaneous_acquisition_chance=spontaneous_acquisition_chance
-                   ):
-   if (will_spontaneously_acquire(graph, graph_copy, node, 'flagged', True, spontaneous_acquisition)):
-      return 1 # We have made a positive difference in this graph by one
+def on_not_flagged(graph, graph_copy, node):
    return 0 # No change
-####################################################################################
-
-
-
-####################################################################################
-# Performs a roll for a node that is in the know to determine whether or not an    #
-# agent should lose a flag, and if so, updates the graph accordingly.              #
-####################################################################################
-def will_forget(graph, graph_copy, node, attr, spontaneous_forget, spontaneous_forget_chance, forget_value=False):
-   # Make sure we don't forget what we don't know!
-   if (spontaneous_forget and graph.node[node][attr] != forget_value):
-      if (helper.chance(spontaneous_forget_chance)):
-         # Wipe flag from both graph and graph_copy
-         graph.node[node][attr] = forget_value
-         graph_copy[node][attr] = forget_value
-         return True
-   return False
- # Skip this node because it no longer has a flag
-####################################################################################
-
-
-
-####################################################################################
-# Performs a roll for a node that is not in the know to determine whether or not   #
-# an agent should gain a flag, and if so, updates the graph accordingly.           #
-####################################################################################
-def will_spontaneously_acquire(
-                               graph, graph_copy, node, attr, acquisition_value,
-                               spontaneous_acquisition=spontaneous_acquisition,
-							   spontaneous_acquisition_chance=spontaneous_acquisition_chance
-                              ):
-   if (spontaneous_acquisition and graph.node[node][attr] != acquisition_value):
-      if (helper.chance(spontaneous_acquisition_chance)):
-         # Apply flag to both graph and graph_copy
-         graph.node[node][attr] = acquisition_value
-         graph_copy.node[node][attr] = acquisition_value
-         return True
-   return False
 ####################################################################################
 
 
@@ -199,11 +140,7 @@ def will_spontaneously_acquire(
 ####################################################################################
 # Determine if a given source node will transmit information to a given node       #
 ####################################################################################
-def will_spread(
-                source, dest, graph, max_weight,
-                talk_to_transmit=talk_to_transmit,
-				transmit_chance=transmit_chance
-               ):
+def will_spread(source, dest, graph, max_weight):
    # TODO: Add more dynamic way to spread flags from nodes to nodes
    
    # Get current weight
@@ -211,12 +148,7 @@ def will_spread(
    
    # Will they engage at all? This consults the weight of their edge
    if ( helper.roll_weight (curr_weight , max_weight ) ):
-      if (talk_to_transmit):
-          return True
-      else:
-         # This is the chance that their engagement will exchange information
-         if (helper.chance(transmit_chance)):
-            return True
+      return True
    return False
 ####################################################################################
 
@@ -281,9 +213,7 @@ def init(graph, node):
 ####################################################################################
 # Determines whether or not a graph is finished.                                   #
 ####################################################################################
-def finished_hook(
-             graph, current_round, max_allowed_rounds
-            ):
+def finished_hook(graph, current_round, max_allowed_rounds):
    # Get all attributes and store them in a dictionary
    dict = nx.get_node_attributes(graph, 'flagged')
    
@@ -291,23 +221,16 @@ def finished_hook(
    if (current_round > max_allowed_rounds):
       return -1 # -1 means we ran out of allowed rounds
    
-   
-   if (
-       (spontaneous_acquisition == False or spontaneous_acquisition_chance <= 0)
-       and 
-       finished_includes_max_subgraph_spread == True
-	  ):
-      return check_subgraph_spread(graph)
-   else:
-      # Iterate the nodes and see if they're flagged or not 
-      for val in dict:
-         if(not dict[val]):
-            #print '[' + val  + ']: ' + str(dict[val])
-            if (helper.num_flagged(graph) > 0):
-               return 0
-            else:
-               return -1
-      return 1 # 1 is a successful graph
+
+   # Iterate the nodes and see if they're flagged or not 
+   for val in dict:
+      if(not dict[val]):
+         #print '[' + val  + ']: ' + str(dict[val])
+         if (helper.num_flagged(graph) > 0):
+            return 0
+         else:
+            return -1
+   return 1 # 1 is a successful graph
 ####################################################################################
 
 
