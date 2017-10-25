@@ -37,7 +37,7 @@ finished_includes_max_subgraph_spread=True
 
 
 def simulation_driver():
-   
+
    # Read in a graph
    graph = nx.read_graphml('simplemodel.graphml')
    helper.output_graph_information(graph)
@@ -48,7 +48,7 @@ def simulation_driver():
    total_fails = 0
    total_simulations = 0
    total_successes = 0
-   
+
    # Start from every node in the graph
    for n in graph.node:
       graphcopy = copy.deepcopy(graph)
@@ -59,12 +59,12 @@ def simulation_driver():
       total_max_flags += max_flags
       total_fails += num_fails
       total_simulations += num_runs
-      
+
    total_successes = total_simulations-total_fails
-   
+
    percent_finished = helper.percent(total_successes, total_simulations)
    percent_flagged = helper.total_percent_flagged(graph, total_flagged, total_simulations)
-   
+
    average_rounds = 0
    if (total_successes > 0):
       average_rounds = total_successes / float(total_simulations) * 100
@@ -84,7 +84,18 @@ def simulation_driver():
 
 
 ####################################################################################
-# Hook for considering a node in the graph.                                        #
+'''
+Hook for considering a node in the graph.
+   Args:
+      graph: A networkx graph instance.
+      graph_copy: Another networkx graph instance which is the deep copy of graph.
+      node: A networkx node instance.
+      max_weight: An integer which is the max weight of edges in this graph.
+
+   Returns:
+      given_flags: An integer showing how many nodes are flagged in this node operation.
+      removed_flags: An integer showing how many nodes are unflagged in this node operation.
+'''
 ####################################################################################
 def on_node(graph, graph_copy, node, max_weight):
    given_flags = 0
@@ -106,14 +117,26 @@ def on_node(graph, graph_copy, node, max_weight):
 
 
 ####################################################################################
-# Runs operations on a flagged node to determine if it will transmit information.  #
+'''
+Runs operations on a flagged node to determine if it will transmit information.
+   Args:
+      graph: A networkx graph instance.
+      graph_copy: Another networkx graph instance which is the deep copy of graph.
+      node: A networkx node instance.
+      max_weight: An integer which is the max weight of edges in this graph.
+      talk_to_transmit: A boolean which indicates whether 'talk' equals to 'transmit'.
+      transmit_chance: A floating number which is the probability of transmission when 'talk' doesn't equal to 'transmit'.
+
+   Returns:
+      given_flags: An integer showing how many nodes are flagged in this node operation.
+'''
 ####################################################################################
 def on_flagged(graph, graph_copy, node, max_weight,
                talk_to_transmit=talk_to_transmit,
                transmit_chance=transmit_chance
                ):
    given_flags = 0
-   
+
    # Debug
    if (defaults.DEBUG_SEVERE):
       print '[defaults.DEBUG]: Node ' + str(node) + ' is flagged.'
@@ -128,7 +151,7 @@ def on_flagged(graph, graph_copy, node, max_weight,
          # If the simulation will actually spread, then spread
          if (will_spread(node, neighbor, graph, max_weight, talk_to_transmit, transmit_chance)):
             graph.node[neighbor]['flagged'] = True
-			
+
             # Increment the number of given_flags this round
             given_flags += 1
 
@@ -139,13 +162,25 @@ def on_flagged(graph, graph_copy, node, max_weight,
          # If we cannot acquire...
          if (defaults.DEBUG_SEVERE): # Output no change has been made
             print 'no action taken.'
-   return given_flags			
+   return given_flags
 ####################################################################################
 
 
 
 ####################################################################################
-# Currently will only check whether or not spontaneous acquisition will occur.     #
+'''
+Currently will only check whether or not spontaneous acquisition will occur.
+   Args:
+      graph: A networkx graph instance.
+      graph_copy: Another networkx graph instance which is the deep copy of graph.
+      node: A networkx node instance.
+      spontaneous_acquisition: A boolean which indicates whether a node would be able to spontaneous acquire information.
+      spontaneous_acquisition_chance: A floating number which is the probability of spontaneous acquisition if it's able to.
+
+   Returns:
+      0: If spontaneous acquisition doesn't happen in this node operation.
+      1: If spontaneous acquisition happens in this node operation.
+'''
 ####################################################################################
 def on_not_flagged(graph, graph_copy, node,
                    spontaneous_acquisition=spontaneous_acquisition,
@@ -159,8 +194,21 @@ def on_not_flagged(graph, graph_copy, node,
 
 
 ####################################################################################
-# Performs a roll for a node that is in the know to determine whether or not an    #
-# agent should lose a flag, and if so, updates the graph accordingly.              #
+'''
+Performs a roll for a node that is in the know to determine whether or not an agent should lose a flag, and if so, updates the graph accordingly.
+   Args:
+      graph: A networkx graph instance.
+      graph_copy: Another networkx graph instance which is the deep copy of graph.
+      node: A networkx node instance.
+      attr: A string indicating which attribute we currently consider.
+      spontaneous_forget: A boolean which indicates whether a node would be able to spontaneous forget information.
+      spontaneous_forget_chance: A floating number which is the probability of spontaneous forget if it's able to.
+      forget_value: The value of attribute we need to set to nodes which forget.
+
+   Returns:
+      True: If spontaneous forget happens in this node operation.
+      False: If spontaneous forget doesn't happen in this node operation.
+'''
 ####################################################################################
 def will_forget(graph, graph_copy, node, attr, spontaneous_forget, spontaneous_forget_chance, forget_value=False):
    # Make sure we don't forget what we don't know!
@@ -177,8 +225,20 @@ def will_forget(graph, graph_copy, node, attr, spontaneous_forget, spontaneous_f
 
 
 ####################################################################################
-# Performs a roll for a node that is not in the know to determine whether or not   #
-# an agent should gain a flag, and if so, updates the graph accordingly.           #
+'''
+Performs a roll for a node that is not in the know to determine whether or not an agent should gain a flag, and if so, updates the graph accordingly.
+   Args:
+      graph: A networkx graph instance.
+      graph_copy: Another networkx graph instance which is the deep copy of graph.
+      node: A networkx node instance.
+      attr: A string indicating which attribute we currently consider.
+      spontaneous_acquisition: A boolean which indicates whether a node would be able to spontaneous forget information.
+      spontaneous_acquisition_chance: A floating number which is the probability of spontaneous forget if it's able to.
+
+   Returns:
+      True: If spontaneous acquisition happens in this node operation.
+      False: If spontaneous acquisition doesn't happen in this node operation.
+'''
 ####################################################################################
 def will_spontaneously_acquire(
                                graph, graph_copy, node, attr, acquisition_value,
@@ -197,7 +257,20 @@ def will_spontaneously_acquire(
 
 
 ####################################################################################
-# Determine if a given source node will transmit information to a given node       #
+'''
+Determine if a given source node will transmit information to a given node.
+   Args:
+      source: A networkx node instance which is the source node in this transmission.
+      dest: Another networkx node instance which is the destination node in this transmission.
+      graph: A networkx graph instance.
+      max_weight: An integer which is the max weight of edges in this graph.
+      talk_to_transmit: A boolean which indicates whether 'talk' equals to 'transmit'.
+      transmit_chance: A floating number which is the probability of transmission when 'talk' doesn't equal to 'transmit'.
+
+   Returns:
+      True: If the information is spread in this node operation.
+      False: If the information isn't spread in this node operation.
+'''
 ####################################################################################
 def will_spread(
                 source, dest, graph, max_weight,
@@ -205,10 +278,10 @@ def will_spread(
 				transmit_chance=transmit_chance
                ):
    # TODO: Add more dynamic way to spread flags from nodes to nodes
-   
+
    # Get current weight
    curr_weight = graph.edge[source][dest]['weight']
-   
+
    # Will they engage at all? This consults the weight of their edge
    if ( helper.roll_weight (curr_weight , max_weight ) ):
       if (talk_to_transmit):
@@ -223,8 +296,12 @@ def will_spread(
 
 
 ####################################################################################
-# Hook for changing the graph at the beginning of the round. Note that this takes  #
-# place before the graph is copied in the engine.                                  #
+'''
+Hook for changing the graph at the beginning of the round. Note that this takes place before the graph is copied in the engine.
+   Args:
+      graph: A networkx graph instance.
+      max_weight: An integer which is the max weight of edges in this graph.
+'''
 ####################################################################################
 def before_round_start(graph, max_weight):
    #for edge in graph.edge:
@@ -235,24 +312,37 @@ def before_round_start(graph, max_weight):
 
 
 ####################################################################################
-# Hook for considering a node in the graph.                                        #
+'''
+Hook for considering a node in the graph.
+   Args:
+      graph: A networkx graph instance.
+
+   Returns:
+      given_flags: An integer showing how many nodes are flagged in this round.
+      removed_flags: An integer showing how many nodes are unflagged in this round.
+'''
 ####################################################################################
 def after_round_end(graph):
    given_flags = 0
    removed_flags = 0
-   
+
    #for edge in graph.edge:
       # do something
-	  
+
    return given_flags, removed_flags
 ####################################################################################
 
 
 
 ####################################################################################
-# Initialize the graph with attributes that are necessary to run a simulation.     #
-# Takes a graph and a String node (i.e., 'n10') to initialize as flagged.          #
-# Also initializes uninitialized weights on graphs as 1.                           #
+'''
+Initialize the graph with attributes that are necessary to run a simulation.
+Takes a graph and a String node (i.e., 'n10') to initialize as flagged.
+Also initializes uninitialized weights on graphs as 1.
+   Args:
+      graph: A networkx graph instance.
+      node: A networkx node instance.
+'''
 ####################################################################################
 def init(graph, node):
    # Let the user know what node is the starting node.
@@ -261,45 +351,56 @@ def init(graph, node):
 
    # Give all nodes a false flag
    helper.create_node_attribute(graph, 'flagged', False)
-   
+
    # Save edge weight, as we are going to wipe graph
    dict = nx.get_edge_attributes(graph, 'weight')
-   
+
    # Write 1 weight to all edges
    nx.set_edge_attributes(graph, 'weight', 1)
-   
+
    # Restore initial edges
    for n1,n2 in dict:
       graph.edge[n1][n2]['weight'] = dict[n1,n2]
-   
-   
+
+
    # Set an arbitrary node
    graph.node[node]['flagged'] = True
 ####################################################################################
 
-   
+
 ####################################################################################
-# Determines whether or not a graph is finished.                                   #
+'''
+Determines whether or not a graph is finished.
+   Args:
+      graph: A networkx graph instance.
+      current_round: An integer recording the current number of rounds.
+      max_allowed_rounds: An integer which is set to be the max allowed number of rounds.
+
+   Returns:
+      0: If we fail to finish this graph simulation run.
+      1: If we succeed to finish this graph simulation run.
+      -1: If the current round number exceeds the max allowed number.
+'''
 ####################################################################################
 def finished_hook(
              graph, current_round, max_allowed_rounds
             ):
    # Get all attributes and store them in a dictionary
    dict = nx.get_node_attributes(graph, 'flagged')
-   
+
    # Make sure we haven't hit the maximum allowed round
    if (current_round > max_allowed_rounds):
       return -1 # -1 means we ran out of allowed rounds
-   
-   
+
+
    if (
        (spontaneous_acquisition == False or spontaneous_acquisition_chance <= 0)
-       and 
+       and
        finished_includes_max_subgraph_spread == True
 	  ):
       return check_subgraph_spread(graph)
    else:
-      # Iterate the nodes and see if they're flagged or not 
+      # Iterate the nodes and see if they're flagged or not
       for val in dict:
          if(not dict[val]):
             #print '[' + val  + ']: ' + str(dict[val])
@@ -314,6 +415,17 @@ def finished_hook(
 
 ####################################################################################
 # Determines whether or not a graph is finished.                                   #
+'''
+   Args:
+      finish_code: 0 or 1 or -1 depend on the finish code we return in finished_hook function.
+      round_num: An integer showing how many round we use to finish the graph if succeed.
+      num_flags: An integer showing how many nodes are flagged in the end.
+
+   Returns:
+      round_num: The number of round it takes if we succeed to finish this run.
+      num_flags: The number of nodes being flagged.
+      -1: If we fail to finish this run.
+'''
 ####################################################################################
 def on_finished(finish_code, round_num, num_flags):
    if (finish_code == 1): # If we've finished the graph
