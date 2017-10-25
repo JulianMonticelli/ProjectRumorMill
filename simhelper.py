@@ -16,6 +16,14 @@ def percent(numerator, denominator):
 ####################################################################################
 # Gets a percentage of flagged nodes on the graph handed into it.                  #
 # nodes that were flagged.                                                         #
+'''
+    Args:
+        graph: A graph of our simulation
+        num_flagged: The number of flagged nodes
+    Returns:
+        A percentage of nodes which are flagged (0% - 100%)
+
+'''
 ####################################################################################
 def percent_flagged(graph, num_flagged):
    return 100 * num_flagged / float(len(graph.node))
@@ -203,10 +211,37 @@ def num_flagged(graph):
 ####################################################################################
 # Rolls a chance that nodes will communicate given the weight of an edge and       #
 # a given maximum weight (chance = given/maximum)                                  #
+'''
+    Args:
+        curr_weight: The current weight in consideration (our chance numerator)
+        max_weight: The maximum weight in a graph (our chance denominator)
+
+    Returns:
+        True if our weight roll satisfies a percentage chance
+        False if our weight roll does not satisfy a percentage chance
+'''
 ####################################################################################
 
 def roll_weight(curr_weight, max_weight):
    # Returns the likelihood of engagement based on weight of graph nodes
    return rand.randint(1, max_weight) > (max_weight - curr_weight)
 
+####################################################################################
+
+
+
+####################################################################################
+# Returns whether or not a round has exceeded a round limit.                       #
+'''
+    Args:
+        curr_round: The current round of a simulation
+        max_rounds: The maximum rounds a simulation should have
+
+    Returns:
+        True if a simulation has exceeded the maximum number of rounds
+        False if a simulation has not exceeded the maximum number of rounds
+'''
+####################################################################################
+def exceeded_round_limit(curr_round, max_rounds):
+   return curr_round > max_rounds
 ####################################################################################
