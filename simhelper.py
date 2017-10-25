@@ -18,8 +18,9 @@ def percent(numerator, denominator):
 # nodes that were flagged.                                                         #
 '''
     Args:
-        graph: A graph of our simulation
+        graph: A graph for our simulation
         num_flagged: The number of flagged nodes
+
     Returns:
         A percentage of nodes which are flagged (0% - 100%)
 
@@ -34,6 +35,15 @@ def percent_flagged(graph, num_flagged):
 ####################################################################################
 # Returns the total percentage of success given a graph, the number of flagged     #
 # nodes and the total number of simulations.                                       #
+'''
+    Args:
+        graph: A graph for our simulation
+        num_flagged: The number of flagged nodes
+        num_simulations: The number of simulations that happened with the input graph
+
+    Returns:
+        A percent of flagged nodes across num_simulations simulations (0% - 100%)
+'''
 ####################################################################################
 def total_percent_flagged(graph, num_flagged, num_simulations):
    return 100 * num_flagged / float((len(graph.node) * num_simulations))
@@ -43,6 +53,13 @@ def total_percent_flagged(graph, num_flagged, num_simulations):
 
 ####################################################################################
 # Pass in a graph, get the integer maximum weight of all edges                     #
+'''
+    Args:
+        graph: A graph for our simulation
+
+    Returns:
+        A maximum weight across all edges
+'''
 ####################################################################################
 def max_weight(graph):
    max_weight = float('-inf')
@@ -56,6 +73,14 @@ def max_weight(graph):
 
 ####################################################################################
 # Given a percentage chance (0.0 - 1.0), roll for that chance.                     #
+'''
+    Args:
+        percentage_chance: The percentage chance for a successful row
+
+    Returns:
+        True if the RNG roll is less than or equal to the percentage_chance
+        False if the RNG roll is greater than the percentage_chance
+'''
 ####################################################################################
 def chance(percentage_chance):
    if (percentage_chance > 1):
@@ -72,6 +97,10 @@ def chance(percentage_chance):
 
 ####################################################################################
 # Dumps information about the given graph.                                         #
+'''
+    Args:
+        graph: A graph for our simulation
+'''
 ####################################################################################
 def output_graph_information(graph):
    print '*' * config.defaults.asterisk_space_count
@@ -90,6 +119,12 @@ def output_graph_information(graph):
 
 ####################################################################################
 # Creates an attribute with an initial value.                                      #
+'''
+    Args:
+        graph: A graph for our simulation
+        attr: An attribute name
+        init_value: A value that we will initialize our attribute with
+'''
 ####################################################################################
 def create_node_attribute(graph, attr, init_value):
    nx.set_node_attributes(graph, attr, init_value)
@@ -99,6 +134,13 @@ def create_node_attribute(graph, attr, init_value):
 
 ####################################################################################
 # Randomizes attributes of all nodes in a graph to a value in a specified range.   #
+'''
+    Args:
+        graph: A graph for our simulation
+        attr: An attribute name
+        low: A low value (inclusive) for our range
+        high: A high value (inclusive) for our range
+'''
 ####################################################################################
 def randomize_node_attribute(graph, attr, low, high):
    for node in graph.node:
@@ -110,6 +152,13 @@ def randomize_node_attribute(graph, attr, low, high):
 ####################################################################################
 # Randomizes node attribute boolean values given a percentage that node attributes #
 # are set to true.                                                                 #
+'''
+    Args:
+        graph: A graph for our simulation
+        attr: An attribute name
+        true_chance: A chance that your boolean will be initialized as true
+                     given any node
+'''
 ####################################################################################
 def randomize_node_attribute_boolean(graph, attr, true_chance):
    for node in graph.node:
@@ -119,7 +168,13 @@ def randomize_node_attribute_boolean(graph, attr, true_chance):
 
 
 ####################################################################################
-# Creates an attribute with an initial value.                                      #
+# Creates an edge attribute with an initial value.                                 #
+'''
+    Args:
+        graph: A graph for our simulation
+        attr: An attribute name
+        init_value: A value that the attribute will be initialized to
+'''
 ####################################################################################
 def create_edge_attribute(graph, attr, init_value):
    nx.set_edge_attributes(graph, attr, init_value)
@@ -128,7 +183,14 @@ def create_edge_attribute(graph, attr, init_value):
 
 
 ####################################################################################
-# Randomizes attributes of all nodes in a graph to a value in a specified range.   #
+# Randomizes attributes of all edges in a graph to a value in a specified range.   #
+'''
+    Args:
+        graph: A graph for our simulation
+        attr: An attribute name
+        low: A low value (inclusive) for our range
+        high: A high value (inclusive) for our range
+'''
 ####################################################################################
 def randomize_edge_attribute(graph, attr, low, high):
    for source in graph.edge:
@@ -140,8 +202,14 @@ def randomize_edge_attribute(graph, attr, low, high):
 
 
 ####################################################################################
-# Randomizes node attribute boolean values given a percentage that node attributes #
+# Randomizes edge attribute boolean values given a percentage that node attributes #
 # are set to true.                                                                 #
+'''
+    Args:
+        graph: A graph for our simulation
+        attr: An attribute name
+        true_chance: A chance that for any edge it will initialize to true
+'''
 ####################################################################################
 def randomize_edge_attribute_boolean(graph, attr, true_chance):
    for source in graph.edge:
@@ -152,14 +220,23 @@ def randomize_edge_attribute_boolean(graph, attr, true_chance):
 
 ####################################################################################
 # Subgraph completion check, takes only a graph argument.                          #
+'''
+    Args:
+        graph: A graph for our simulation
+
+    Returns:
+        1 if we have finished the graph (as best we could)
+        0 if we have not finished the graph (but we could still continue)
+       -1 if we have 0 nodes left in all subgraphs
+'''
 ####################################################################################
 # Subgraph stuff
 def check_subgraph_spread(graph):
    if (subgraph_max_spread(graph)):
-      return 1
+      return 1 # We have finished the graph as best we could
    else:
       if (num_flagged(graph) > 0):
-         return 0 # We've finished the graph, as best we could.
+         return 0 # We have not finished the graph
       else:
          return -1 # We have 0 infected nodes. Graph failed.
 ####################################################################################
@@ -168,9 +245,18 @@ def check_subgraph_spread(graph):
 ####################################################################################
 # Determines whether or not a graph is finished by considering subgraph spread.    #
 # May run into problems if directed graphs are ever considered.                    #
+'''
+    Args:
+        graph: A graph for our simulation
+
+    Returns:
+        True if there is at least one subgraph complete, but none partially complete
+        False if there is not at least one subgraph complete, or at least one
+              partially complete graph
+'''
 ####################################################################################
-def subgraph_max_spread(g):
-   graphs = list(nx.connected_component_subgraphs(g, copy=True))
+def subgraph_max_spread(graph):
+   graphs = list(nx.connected_component_subgraphs(graph, copy=True))
    num_subgraphs = len(graphs)
    graphs_max_spread = 0
    graphs_partial_spread = 0
@@ -196,6 +282,13 @@ def subgraph_max_spread(g):
 
 ####################################################################################
 # Returns an integer value with the number of flagged nodes                        #
+'''
+    Args:
+        graph: A graph for our simulation
+
+    Returns:
+        The number of flagged nodes in the input graph
+'''
 ####################################################################################
 def num_flagged(graph):
    num_flagged = 0
