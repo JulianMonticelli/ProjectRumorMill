@@ -389,7 +389,7 @@ def finished_hook(
    dict = nx.get_node_attributes(graph, 'flagged')
 
    # Make sure we haven't hit the maximum allowed round
-   if (current_round > max_allowed_rounds):
+   if (helper.exceeded_round_limit(current_round, max_allowed_rounds)):
       return -1 # -1 means we ran out of allowed rounds
 
 
@@ -414,8 +414,8 @@ def finished_hook(
 
 
 ####################################################################################
-# Determines whether or not a graph is finished.                                   #
 '''
+Hook for finishing this graph.
    Args:
       finish_code: 0 or 1 or -1 depend on the finish code we return in finished_hook function.
       round_num: An integer showing how many round we use to finish the graph if succeed.
