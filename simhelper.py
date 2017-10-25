@@ -211,6 +211,15 @@ def num_flagged(graph):
 ####################################################################################
 # Rolls a chance that nodes will communicate given the weight of an edge and       #
 # a given maximum weight (chance = given/maximum)                                  #
+'''
+    Args:
+        curr_weight: The current weight in consideration (our chance numerator)
+        max_weight: The maximum weight in a graph (our chance denominator)
+
+    Returns:
+        True if our weight roll satisfies a percentage chance
+        False if our weight roll does not satisfy a percentage chance
+'''
 ####################################################################################
 
 def roll_weight(curr_weight, max_weight):
