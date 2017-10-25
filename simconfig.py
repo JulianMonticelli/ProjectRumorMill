@@ -288,7 +288,7 @@ def finished_hook(
    dict = nx.get_node_attributes(graph, 'flagged')
    
    # Make sure we haven't hit the maximum allowed round
-   if (current_round > max_allowed_rounds):
+   if (helper.exceeded_round_limit(current_round, max_allowed_rounds)):
       return -1 # -1 means we ran out of allowed rounds
    
    
