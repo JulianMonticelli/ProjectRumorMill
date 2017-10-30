@@ -118,6 +118,22 @@ def output_graph_information(graph):
 
 
 ####################################################################################
+# Returns the total number of nodes in a graph.                                    #
+'''
+    Args:
+        graph: A graph for our simulation
+
+    Returns:
+        The number of nodes in a graph
+'''
+####################################################################################
+def num_nodes(graph):
+   return nx.number_of_nodes(graph)
+####################################################################################
+
+
+
+####################################################################################
 # Creates an attribute with an initial value.                                      #
 '''
     Args:
