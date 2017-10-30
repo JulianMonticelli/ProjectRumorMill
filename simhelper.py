@@ -1,5 +1,6 @@
 import networkx as nx
 import random as rand
+import datetime
 
 import simconfig as config
 import simdefaults as defaults
@@ -129,6 +130,25 @@ def output_graph_information(graph):
 ####################################################################################
 def num_nodes(graph):
    return nx.number_of_nodes(graph)
+####################################################################################
+
+
+
+####################################################################################
+# Returns a string with the date and the time.                                     #
+####################################################################################
+def date_time():
+   return datetime.datetime.now()
+####################################################################################
+
+
+
+####################################################################################
+# Returns a string with the date and the time.                                     #
+####################################################################################
+def time():
+   now = datetime.datetime.now()
+   return datetime.time(now.hour, now.minute, now.second)
 ####################################################################################
 
 

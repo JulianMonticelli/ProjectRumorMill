@@ -24,6 +24,7 @@ import copy             # For copying graphs
 import networkx as nx   # GraphML
 import random as rand
 
+
 # Simulation setup
 import simdefaults as defaults
 import simhelper as helper
@@ -56,7 +57,7 @@ def simulate(graph, num_simulations, sim_name):
    while (current_run <= num_simulations):
       graph_instance = copy.deepcopy(graph)
       run_name = sim_name + '_r' + str(current_run)
-      print 'Beginning simulation ' + sim_name + ', run ' + str(current_run) + '...'
+      print '[' + str(helper.date_time()) + ']' '> Beginning simulation ' + sim_name + ', run ' + str(current_run) + '...'
       run(graph_instance, max_weight, config.maximum_allowed_simulation_rounds, run_name)
       current_run += 1
 ####################################################################################
@@ -84,7 +85,7 @@ def run(graph, max_weight, max_allowed_rounds, run_name):
    # TODO: Variable finished condition for easy hook mod
    # Run loop
 
-   while(config.finished_hook(graph, round_num, max_allowed_rounds, run_name) == 0):
+   while(not config.finished_hook(graph, round_num, max_allowed_rounds, run_name)):
       round_num += 1
 
       # Run the round

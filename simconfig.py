@@ -14,8 +14,8 @@ maximum_allowed_simulation_rounds = 100 # Max amount of rounds before we stop ru
 num_runs = 3      # Default number of runs per simulation
 
 # Transmission variables
-talk_to_transmit = False   # Transmission = just talking?
-transmit_chance = 0.2 # If transmit =/= talk, what is the chance upon talking
+talk_to_transmit = True   # Transmission = just talking?
+transmit_chance = 0.20 # If transmit =/= talk, what is the chance upon talking
 
 # Forgetting variables
 spontaneous_forget = True          # Node can forget
@@ -39,6 +39,7 @@ finished_includes_max_subgraph_spread=True
 #
 # DATA for simulations
 num_flagged = 0
+num_flagged_successes = 0
 max_flagged = 0
 total_simulations = 0
 total_successes = 0
@@ -47,14 +48,16 @@ num_forgot = 0
 num_given = 0
 max_given = 0
 max_forgot = 0
+total_rounds = 0
+max_virality = 0
+min_rounds_success = float('inf')
+max_rounds_success = float('-inf')
 
 
 def simulation_driver():
-   global num_flagged, max_flagged, total_successes, total_simulations, num_fails, num_forgot, num_given, max_given, max_forgot
    # Read in a graph
    graph = nx.read_graphml('simplemodel.graphml')
    helper.output_graph_information(graph)
-
 
    # Start from every node in the graph
    for n in graph.node:
@@ -72,10 +75,10 @@ def simulation_driver():
 
    percent_finished = helper.percent(total_successes, total_simulations)
    percent_flagged = helper.total_percent_flagged(graph, num_flagged, total_simulations)
-
+   percent_flagged_successes = helper.total_percent_flagged(graph, num_flagged_successes, total_successes)
    average_rounds = 0
    if (total_successes > 0):
-      average_rounds = total_successes / float(total_simulations) * 100
+      average_rounds = total_rounds / float(total_successes)
    print '\n' * 2
    print '*' * defaults.asterisk_space_count
    print 'Simulations complete.'
@@ -83,8 +86,11 @@ def simulation_driver():
    print 'Total successful simulations (spread across whole graph): ' + str(total_successes)
    print 'Total failed simulations (could not spread across graph): ' + str(num_fails)
    print 'Total number of simulations (complete and incomplete):    ' + str(total_simulations)
-   print '\n'
-   print 'Average rounds until completion (across ' + str(total_successes) +' simulation runs): ' + str(average_rounds) + '%'
+   print '\n' + '*' * defaults.asterisk_space_count + '\n'
+   print 'Min rounds until success: ' + str(min_rounds_success)
+   print 'Max rounds until success: ' + str(max_rounds_success)
+   print 'Average rounds until completion (across ' + str(total_successes) +' simulation runs): ' + str(average_rounds)
+   print 'Average graph spread rate (across ' +  str(total_successes) + ' simulation runs): ' + str(percent_flagged_successes) + '%'
    print 'Average graph completion rate (across all graphs): ' + str(percent_finished) + '%'
    print 'Average graph spread rate (across all graphs): ' + str(percent_flagged) + '%'
 ####################################################################################
@@ -394,15 +400,21 @@ def finished_hook(graph, current_round, max_allowed_rounds, run_name,
 
    # Make sure we haven't hit the maximum allowed round
    if (helper.exceeded_round_limit(current_round, max_allowed_rounds)):
-      return -1 # -1 means we ran out of allowed rounds
+      return -1 # -1 means we failed
 
 
+   # A subgraph completion check should only be done if we don't spontaneously acquire information
+   # and if finished is meant to include max subgraph spread
    if (
-       not (spontaneous_acquisition == False or spontaneous_acquisition_chance <= 0)
+       (spontaneous_acquisition == False or spontaneous_acquisition_chance <= 0)
        and
-       finished_includes_max_subgraph_spread == True
+       finished_includes_max_subgraph_spread
 	  ):
       return helper.check_subgraph_spread(graph)
+	  
+   # If the above check is not true, check how many nodes are flagged.
+   # If all nodes are flagged, the information has successfully passed itself along.
+   # Otherwise, make sure we haven't lost all of the information before trying to spread it further.
    else:
       # Iterate the nodes and see if they're flagged or not
       for val in dict:
@@ -432,22 +444,33 @@ def on_finished(graph, finish_code, round_num, run_name):
    global total_simulations
    global total_successes
    global num_fails
+   global total_rounds
    global num_flagged
+   global num_flagged_successes
    global max_flagged
-
+   global min_rounds_success
+   global max_rounds_success
+   
    total_simulations += 1
-
+   flagged_nodes = helper.num_flagged(graph)
+   num_flagged += flagged_nodes
+   
    if (finish_code < 0):
-      print '[FINISHED]: ' + run_name + ' failed! ' + str(helper.num_flagged(graph)) + ' flagged out of ' + str(helper.num_nodes(graph))
+      print run_name + '> failed! ' + str(helper.num_flagged(graph)) + ' flagged out of ' + str(helper.num_nodes(graph))
       num_given = 0
       num_forgot = 0
       num_fails += 1
       return
    else:
-      print '[FINISHED]: ' + run_name + ' succeeded! ' + str(helper.num_flagged(graph)) + ' flagged out of ' + str(helper.num_nodes(graph)) 
+      print run_name + '> succeeded! ' + str(helper.num_flagged(graph)) + ' flagged out of ' + str(helper.num_nodes(graph)) 
+      total_rounds 
       num_given = 0
       num_forgot = 0
+      num_flagged_successes += flagged_nodes
+      total_rounds += round_num
       total_successes += 1
+      min_rounds_success = min(min_rounds_success, round_num)
+      max_rounds_success = max(max_rounds_success, round_num)
    # Add simulation-based variables to global sums
    
 ####################################################################################
