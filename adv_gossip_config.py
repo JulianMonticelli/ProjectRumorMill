@@ -265,7 +265,7 @@ def finished_hook(graph, current_round, max_allowed_rounds):
 ####################################################################################
 # Determines whether or not a graph is finished.                                   #
 ####################################################################################
-def on_finished(finish_code, round_num, num_flags):
+def on_finished(finish_code, round_num, num_flags, run_name, total_time_seconds):
    if (finish_code == 1): # If we've finished the graph
       return round_num,num_flags
    else:
