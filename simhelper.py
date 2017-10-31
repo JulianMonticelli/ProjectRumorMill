@@ -1,6 +1,7 @@
 import networkx as nx
 import random as rand
 import datetime
+from time import sleep
 
 import simdefaults as defaults
 
@@ -176,6 +177,17 @@ def time():
 
 ####################################################################################
 '''
+Sleeps for a number of milliseconds
+'''
+####################################################################################
+def sleep_ms(ms):
+   sleep(((float)(ms)) / ((float)(1000)))
+####################################################################################
+
+
+
+####################################################################################
+'''
 Returns the difference between two timestamps.
     Args:
         ts1: Timestamp 1
@@ -190,7 +202,8 @@ def time_diff(ts1, ts2):
       td = ts1 - ts2
    else:
       td = ts2 - ts1
-   td_mins = int(td.total_seconds())
+   td = int(td.total_seconds())
+   return td
 ####################################################################################
 
 
@@ -406,5 +419,5 @@ Removes an node and all adjacent edges from the graph.
 '''
 ####################################################################################
 def kill_node(graph, node):
-   graph.remove_node(g, node)
+   graph.remove_node(node)
 ####################################################################################

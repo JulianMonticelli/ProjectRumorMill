@@ -7,10 +7,12 @@ import simengine as engine # < Driver in config requires this
 import simhelper as helper
 import simdefaults as defaults
 
+
 #######################
 # Simulation arguments#
 #######################
-maximum_allowed_simulation_rounds = 10 # Max amount of rounds before we stop running a simulation
+heartbeat_interval = 30 # 30 second heartbeat interval
+maximum_allowed_simulation_rounds = 15000 # Max amount of rounds before we stop running a simulation
 num_runs = 1      # Default number of runs per simulation
 
 edge_removal_chance = .12
@@ -18,9 +20,13 @@ edge_addition_chance = edge_removal_chance / 2
 
 food_per_round = 500
 water_per_round = 100
-health_regen_per_round = 1
 
 
+heal_food_threshold = 20000
+heal_water_threshold = 3000
+heal_max_hp = 3
+heal_food_per_hp = 100
+heal_water_per_hp = 35
 
 #######################
 # Global data         #
@@ -109,41 +115,48 @@ Runs operations on a flagged node to determine if it will transmit information.
 '''
 ####################################################################################
 def on_flagged(graph, graph_copy, node, max_weight, run_name):
-   given_flags = 0
    
    # Check the unedited copy graph for flagged neighbors
    for neighbor in graph_copy.edge[node]:
+      # If a zombie has no health left, forget iterating its neighbors
+      if (graph.node[node]['health'] <= 0):
+         break # 
+	  
       # If a target graph node in both the copy and original aren't flagged
       if (not graph_copy.node[neighbor]['infected'] and not graph.node[neighbor]['infected']):
          
-         # If the simulation will actually spread, then spread
+         # If the neighbor will be infected, then infect the neighbor
          if (will_spread(node, neighbor, graph, max_weight, run_name)):
             graph.node[neighbor]['infected'] = True
 			
-            # Increment the number of given_flags this round
-            given_flags += 1
 
-   return given_flags			
 ####################################################################################
 
 
 
 ####################################################################################
 '''
-Currently will only check whether or not spontaneous acquisition will occur.
+Only humans should trigger this function. Rolls for whether or not a human may find
+food or water. If food and water are above a certain level, health regenerates as well.
    Args:
       graph: A networkx graph instance.
       graph_copy: Another networkx graph instance which is the deep copy of graph.
       node: A networkx node instance.
       run_name: The name of the current method
-
-   Returns:
-      0: If spontaneous acquisition doesn't happen in this node operation.
-      1: If spontaneous acquisition happens in this node operation.
 '''
 ####################################################################################
 def on_not_flagged(graph, graph_copy, node, run_name):
-   return 0 # No change
+   #
+
+   # Heal damage
+   node_health = graph.node[node]['health']
+   if (node_health < 100):
+      heal_amount = min(heal_max_hp, 100-node_health) # We don't want to heal to > 100
+      if (graph.node[node]['food'] >= heal_food_threshold and graph.node[node]['water'] > heal_water_threshold):
+         graph.node[node]['health'] = graph.node[node]['health'] + heal_amount
+         # print 'Human ' + str(node) + ' regens ' + str(heal_amount) + ' health (current health now ' + str(graph.node[node]['health']) + ').'
+         graph.node[node]['food'] = graph.node[node]['food'] - heal_amount * heal_food_per_hp
+         graph.node[node]['water'] = graph.node[node]['water'] - heal_amount * heal_water_per_hp
 ####################################################################################
 
 
@@ -189,9 +202,10 @@ Hook for changing the graph at the beginning of the round. Note that this takes 
 '''
 ####################################################################################
 def before_round_start(graph, max_weight, run_name):
-   for edge in graph.edge:
+   helper.sleep_ms(1)
+   #for edge in graph.edge:
       # do nothing
-	  print '',
+	  #print '',
 	     
    return
 ####################################################################################
@@ -313,7 +327,7 @@ Hook for finishing the simulation run on the current graph.
       run_name: The name of the current simulation run
 '''
 ####################################################################################
-def on_finished(finish_code, round_num, num_flags, run_name):
+def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
    global total_simulations, humans_lost, humans_won, humans_left_min, humans_left_max
    
    total_simulations += 1
@@ -326,6 +340,23 @@ def on_finished(finish_code, round_num, num_flags, run_name):
       print 'Zombies are all dead - humans have prevailed!'
       humans_won += 1
    if (finish_code == 3):
-      print 'Somehow, there was nothing left (starvation might have gotten all zomibes and humans!'
+      print 'Somehow, there was nothing left (starvation might have gotten all zomibes and humans!)'
       # DO NOT have data code
+####################################################################################
+
+
+
+####################################################################################
+'''
+Hook for performing a heartbeat. This is meant to let the user know that the
+simulation is still running and NOT stuck somewhere in an infinite loop.
+    Args:
+        current_time: A current time timestamp.
+        last_heartbeat: The amount of seconds since the last heartbeat.
+        run_name: The name of the current run.
+'''
+####################################################################################
+def heartbeat(current_time, last_heartbeat, run_name):
+   print '[' + str(current_time) + ']: ' + str(run_name) + ' still alive. Last update was ' \
+         + str(last_heartbeat) + ' seconds ago.'
 ####################################################################################

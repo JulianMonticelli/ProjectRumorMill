@@ -9,6 +9,7 @@ import simdefaults as defaults
 #######################
 # Simulation arguments#
 #######################
+heartbeat_interval = 30 # 30 second heartbeat
 maximum_allowed_simulation_rounds = 100 # Max amount of rounds before we stop running a simulation
 num_runs = 3      # Default number of runs per simulation
 
@@ -484,4 +485,21 @@ def on_finished(graph, finish_code, round_num, run_name):
       max_rounds_success = max(max_rounds_success, round_num)
    # Add simulation-based variables to global sums
    
+####################################################################################
+
+
+
+####################################################################################
+'''
+Hook for performing a heartbeat. This is meant to let the user know that the
+simulation is still running and NOT stuck somewhere in an infinite loop.
+    Args:
+        current_time: A current time timestamp.
+        last_heartbeat: The amount of seconds since the last heartbeat.
+        run_name: The name of the current run.
+'''
+####################################################################################
+def heartbeat(current_time, last_heartbeat, run_name):
+   print '[' + str(current_time) + ']: ' + str(run_name) + ' still alive. Last update was ' \
+         + str(last_heartbeat) + ' seconds ago.'
 ####################################################################################
