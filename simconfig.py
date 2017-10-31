@@ -2,7 +2,6 @@
 import networkx as nx
 import copy
 
-# Cyclical dependency?
 import simengine as engine
 import simhelper as helper
 import simdefaults as defaults
@@ -35,9 +34,9 @@ spontaneous_acquisition_chance = 0.01
 # spread to.
 finished_includes_max_subgraph_spread=True
 
-#
-#
-# DATA for simulations
+#######################
+# Global data         #
+#######################
 num_flagged = 0
 num_flagged_successes = 0
 max_flagged = 0
@@ -53,7 +52,13 @@ max_virality = 0
 min_rounds_success = float('inf')
 max_rounds_success = float('-inf')
 
-
+####################################################################################
+'''
+Simulation driver, which will call the engine to begin simulations. Setup should
+happen in this method, and data collection should be done inside any method necessary.
+A logically sound place to put data processing is at the end of this method.
+'''
+####################################################################################
 def simulation_driver():
    # Read in a graph
    graph = nx.read_graphml('simplemodel.graphml')
@@ -270,7 +275,7 @@ Determine if a given source node will transmit information to a given node.
       max_weight: An integer which is the max weight of edges in this graph.
       run_name: The name of the current run
       talk_to_transmit: A boolean which indicates whether 'talk' equals to 'transmit'.
-      transmit_chance: A floating number which is the probability of transmission when 'talk' doesn't equal to 'transmit'.
+      transmit_chance: A floating number which is the probability of transmission when 'talk' isn't equal to 'transmit'.
 
    Returns:
       True: If the information is spread in this node operation.
@@ -349,7 +354,7 @@ Also initializes uninitialized weights on graphs as 1.
    Args:
       graph: A networkx graph instance.
       node: A networkx node instance.
-      run_name: The name of the current run
+      sim_name: The name of the current simulation
 '''
 ####################################################################################
 def init(graph, node, sim_name):
@@ -371,7 +376,7 @@ def init(graph, node, sim_name):
       graph.edge[n1][n2]['weight'] = dict[n1,n2]
 
 
-   # Set an arbitrary node
+   # Set an specific node
    graph.node[node]['flagged'] = True
 ####################################################################################
 
@@ -383,7 +388,12 @@ Determines whether or not a graph is finished.
       graph: A networkx graph instance.
       current_round: An integer recording the current number of rounds.
       max_allowed_rounds: An integer which is set to be the max allowed number of rounds.
-
+      run_name: The name of the current simulation run
+	  [spontaneous_acquisition]: An override for the file default state of spontaneous
+                                 acquisition
+	  [spontaneous_acquisition_chance]: An override for the file default spontaneous
+                                        acquisition chance.
+	  
    Returns:
       0: If we fail to finish this graph simulation run.
       1: If we succeed to finish this graph simulation run.
@@ -396,7 +406,7 @@ def finished_hook(graph, current_round, max_allowed_rounds, run_name,
    # Get all attributes and store them in a dictionary
    dict = nx.get_node_attributes(graph, 'flagged')
 
-   helper.num_flagged(graph)
+   helper.num_flagged(graph, 'flagged')
 
    # Make sure we haven't hit the maximum allowed round
    if (helper.exceeded_round_limit(current_round, max_allowed_rounds)):
@@ -420,7 +430,7 @@ def finished_hook(graph, current_round, max_allowed_rounds, run_name,
       for val in dict:
          if(not dict[val]):
             #print '[' + val  + ']: ' + str(dict[val])
-            if (helper.num_flagged(graph) > 0):
+            if (helper.num_flagged(graph, 'flagged') > 0):
                return 0
             else:
                return -1
@@ -436,6 +446,7 @@ Hook for finishing the simulation run on the current graph.
       finish_code: 0 or 1 or -1 depend on the finish code we return in finished_hook function.
       round_num: An integer showing how many round we use to finish the graph if succeed.
       num_flags: An integer showing how many nodes are flagged in the end.
+      run_name: The name of the current simulation run
 '''
 ####################################################################################
 def on_finished(graph, finish_code, round_num, run_name):
@@ -452,17 +463,17 @@ def on_finished(graph, finish_code, round_num, run_name):
    global max_rounds_success
    
    total_simulations += 1
-   flagged_nodes = helper.num_flagged(graph)
+   flagged_nodes = helper.num_flagged(graph, 'flagged')
    num_flagged += flagged_nodes
    
    if (finish_code < 0):
-      print run_name + '> failed! ' + str(helper.num_flagged(graph)) + ' flagged out of ' + str(helper.num_nodes(graph))
+      print run_name + '> failed! ' + str(helper.num_flagged(graph, 'flagged')) + ' flagged out of ' + str(helper.num_nodes(graph))
       num_given = 0
       num_forgot = 0
       num_fails += 1
       return
    else:
-      print run_name + '> succeeded! ' + str(helper.num_flagged(graph)) + ' flagged out of ' + str(helper.num_nodes(graph)) 
+      print run_name + '> succeeded! ' + str(helper.num_flagged(graph, 'flagged')) + ' flagged out of ' + str(helper.num_nodes(graph)) 
       total_rounds 
       num_given = 0
       num_forgot = 0

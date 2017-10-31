@@ -2,11 +2,28 @@ import networkx as nx
 import random as rand
 import datetime
 
-import simconfig as config
 import simdefaults as defaults
 
+
+
 ####################################################################################
-# Converts a numerator and a denominator into a percentage.                        #
+# Returns an integer value with the number of flagged nodes given an attribute     #
+####################################################################################
+def num_flagged(graph, attr):
+   num_flagged = 0
+   nodes = nx.get_node_attributes(graph, attr)
+   for val in nodes:
+      if (nodes[val]):
+         num_flagged += 1
+   return num_flagged
+####################################################################################
+
+
+
+####################################################################################
+'''
+Converts a numerator and a denominator into a percentage.
+'''
 ####################################################################################
 def percent(numerator, denominator):
    return 100 * numerator / float(denominator)
@@ -15,9 +32,9 @@ def percent(numerator, denominator):
 
 
 ####################################################################################
-# Gets a percentage of flagged nodes on the graph handed into it.                  #
-# nodes that were flagged.                                                         #
 '''
+Gets a percentage of flagged nodes on the graph handed into it.
+nodes that were flagged.
     Args:
         graph: A graph for our simulation
         num_flagged: The number of flagged nodes
@@ -34,9 +51,9 @@ def percent_flagged(graph, num_flagged):
 
 
 ####################################################################################
-# Returns the total percentage of success given a graph, the number of flagged     #
-# nodes and the total number of simulations.                                       #
 '''
+Returns the total percentage of success given a graph, the number of flagged nodes 
+and the total number of simulations.
     Args:
         graph: A graph for our simulation
         num_flagged: The number of flagged nodes
@@ -53,8 +70,8 @@ def total_percent_flagged(graph, num_flagged, num_simulations):
 
 
 ####################################################################################
-# Pass in a graph, get the integer maximum weight of all edges                     #
 '''
+Pass in a graph, get the integer maximum weight of all edges
     Args:
         graph: A graph for our simulation
 
@@ -73,8 +90,8 @@ def max_weight(graph):
 
 
 ####################################################################################
-# Given a percentage chance (0.0 - 1.0), roll for that chance.                     #
 '''
+Given a percentage chance (0.0 - 1.0), roll for that chance.
     Args:
         percentage_chance: The percentage chance for a successful row
 
@@ -97,14 +114,14 @@ def chance(percentage_chance):
 
 
 ####################################################################################
-# Dumps information about the given graph.                                         #
 '''
+Dumps information about the given graph.
     Args:
         graph: A graph for our simulation
 '''
 ####################################################################################
 def output_graph_information(graph):
-   print '*' * config.defaults.asterisk_space_count
+   print '*' * defaults.asterisk_space_count
    print 'Graph has ' + str(graph.number_of_nodes()) + ' node(s) and ' + str(graph.number_of_edges()) + ' edge(s).'
    print 'Density: ' + str(nx.density(graph))
    print 'Max weight of edges: ' + str(max_weight(graph))
@@ -113,14 +130,14 @@ def output_graph_information(graph):
    else:
       print 'Graph is disjoint.'
    #print 'Betweenness centrality: ' + str(nx.betweenness_centrality(graph)) # It can be done!
-   print '*' * config.defaults.asterisk_space_count
+   print '*' * defaults.asterisk_space_count
 ####################################################################################
 
 
 
 ####################################################################################
-# Returns the total number of nodes in a graph.                                    #
 '''
+Returns the total number of nodes in a graph. 
     Args:
         graph: A graph for our simulation
 
@@ -135,7 +152,9 @@ def num_nodes(graph):
 
 
 ####################################################################################
-# Returns a string with the date and the time.                                     #
+'''
+Returns a string with the date and the time.
+'''
 ####################################################################################
 def date_time():
    return datetime.datetime.now()
@@ -144,7 +163,9 @@ def date_time():
 
 
 ####################################################################################
-# Returns a string with the date and the time.                                     #
+'''
+Returns a string with the date and the time.
+'''
 ####################################################################################
 def time():
    now = datetime.datetime.now()
@@ -154,8 +175,28 @@ def time():
 
 
 ####################################################################################
-# Creates an attribute with an initial value.                                      #
 '''
+Returns the difference between two timestamps.
+    Args:
+        ts1: Timestamp 1
+        ts2: Timestamp 2
+
+    Returns:
+        Difference in time in seconds
+'''
+####################################################################################
+def time_diff(ts1, ts2):
+   if ts1 > ts2:
+      td = ts1 - ts2
+   else:
+      td = ts2 - ts1
+   td_mins = int(td.total_seconds())
+####################################################################################
+
+
+####################################################################################
+'''
+Creates an attribute with an initial value.
     Args:
         graph: A graph for our simulation
         attr: An attribute name
@@ -169,8 +210,8 @@ def create_node_attribute(graph, attr, init_value):
 
 
 ####################################################################################
-# Randomizes attributes of all nodes in a graph to a value in a specified range.   #
 '''
+Randomizes attributes of all nodes in a graph to a value in a specified range.
     Args:
         graph: A graph for our simulation
         attr: An attribute name
@@ -186,9 +227,9 @@ def randomize_node_attribute(graph, attr, low, high):
 
 
 ####################################################################################
-# Randomizes node attribute boolean values given a percentage that node attributes #
-# are set to true.                                                                 #
 '''
+Randomizes node attribute boolean values given a percentage that node attributes 
+are set to true.
     Args:
         graph: A graph for our simulation
         attr: An attribute name
@@ -204,8 +245,8 @@ def randomize_node_attribute_boolean(graph, attr, true_chance):
 
 
 ####################################################################################
-# Creates an edge attribute with an initial value.                                 #
 '''
+Creates an edge attribute with an initial value.
     Args:
         graph: A graph for our simulation
         attr: An attribute name
@@ -219,8 +260,8 @@ def create_edge_attribute(graph, attr, init_value):
 
 
 ####################################################################################
-# Randomizes attributes of all edges in a graph to a value in a specified range.   #
 '''
+Randomizes attributes of all edges in a graph to a value in a specified range.
     Args:
         graph: A graph for our simulation
         attr: An attribute name
@@ -238,9 +279,9 @@ def randomize_edge_attribute(graph, attr, low, high):
 
 
 ####################################################################################
-# Randomizes edge attribute boolean values given a percentage that node attributes #
-# are set to true.                                                                 #
 '''
+Randomizes edge attribute boolean values given a percentage that node attributes
+are set to true.
     Args:
         graph: A graph for our simulation
         attr: An attribute name
@@ -254,9 +295,11 @@ def randomize_edge_attribute_boolean(graph, attr, true_chance):
             graph.edge[source][dest][attr] = chance(true_chance)
 ####################################################################################
 
+
+
 ####################################################################################
-# Subgraph completion check, takes only a graph argument.                          #
 '''
+Subgraph completion check, takes only a graph argument.
     Args:
         graph: A graph for our simulation
 
@@ -266,7 +309,6 @@ def randomize_edge_attribute_boolean(graph, attr, true_chance):
        -1 if we have 0 nodes left in all subgraphs
 '''
 ####################################################################################
-# Subgraph stuff
 def check_subgraph_spread(graph):
    if (subgraph_max_spread(graph)):
       return 1 # We have finished the graph as best we could
@@ -279,9 +321,9 @@ def check_subgraph_spread(graph):
 
 
 ####################################################################################
-# Determines whether or not a graph is finished by considering subgraph spread.    #
-# May run into problems if directed graphs are ever considered.                    #
 '''
+Determines whether or not a graph is finished by considering subgraph spread.
+May run into problems if directed graphs are ever considered.
     Args:
         graph: A graph for our simulation
 
@@ -316,31 +358,11 @@ def subgraph_max_spread(graph):
 ####################################################################################
 
 
+
 ####################################################################################
-# Returns an integer value with the number of flagged nodes                        #
 '''
-    Args:
-        graph: A graph for our simulation
-
-    Returns:
-        The number of flagged nodes in the input graph
-'''
-####################################################################################
-def num_flagged(graph):
-   num_flagged = 0
-   nodes = nx.get_node_attributes(graph, 'flagged')
-   for val in nodes:
-      if (nodes[val]):
-         num_flagged += 1
-   return num_flagged
-####################################################################################
-
-
-
-####################################################################################
-# Rolls a chance that nodes will communicate given the weight of an edge and       #
-# a given maximum weight (chance = given/maximum)                                  #
-'''
+Rolls a chance that nodes will communicate given the weight of an edge and
+a given maximum weight (chance = given/maximum)
     Args:
         curr_weight: The current weight in consideration (our chance numerator)
         max_weight: The maximum weight in a graph (our chance denominator)
@@ -350,18 +372,16 @@ def num_flagged(graph):
         False if our weight roll does not satisfy a percentage chance
 '''
 ####################################################################################
-
 def roll_weight(curr_weight, max_weight):
    # Returns the likelihood of engagement based on weight of graph nodes
    return rand.randint(1, max_weight) > (max_weight - curr_weight)
-
 ####################################################################################
 
 
 
 ####################################################################################
-# Returns whether or not a round has exceeded a round limit.                       #
 '''
+Returns whether or not a round has exceeded a round limit.
     Args:
         curr_round: The current round of a simulation
         max_rounds: The maximum rounds a simulation should have
@@ -373,4 +393,18 @@ def roll_weight(curr_weight, max_weight):
 ####################################################################################
 def exceeded_round_limit(curr_round, max_rounds):
    return curr_round > max_rounds
+####################################################################################
+
+
+
+####################################################################################
+'''
+Removes an node and all adjacent edges from the graph.
+    Args:
+        graph: The current graph for the simulation
+        node: The node that is to be killed
+'''
+####################################################################################
+def kill_node(graph, node):
+   graph.remove_node(g, node)
 ####################################################################################

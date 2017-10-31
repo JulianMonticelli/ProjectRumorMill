@@ -23,13 +23,18 @@ import argparse         # Parse command line args
 import copy             # For copying graphs
 import networkx as nx   # GraphML
 import random as rand
+import datetime
 
 
 # Simulation setup
 import simdefaults as defaults
 import simhelper as helper
-import simconfig as config
+import adv_zombie_config as config
 # Replace ^ that argument for different simulations
+
+
+last_timestamp = 0
+
 
 ####################################################################################
 # Program entry point. Setup, etc.                                                 #
@@ -57,7 +62,8 @@ def simulate(graph, num_simulations, sim_name):
    while (current_run <= num_simulations):
       graph_instance = copy.deepcopy(graph)
       run_name = sim_name + '_r' + str(current_run)
-      print '[' + str(helper.date_time()) + ']' '> Beginning simulation ' + sim_name + ', run ' + str(current_run) + '...'
+      last_timestamp = helper.date_time()
+      print '[' + str(last_timestamp) + ']' '> Beginning simulation ' + sim_name + ', run ' + str(current_run) + '...'
       run(graph_instance, max_weight, config.maximum_allowed_simulation_rounds, run_name)
       current_run += 1
 ####################################################################################
@@ -77,9 +83,7 @@ A single run of a simulation.
 ####################################################################################
 def run(graph, max_weight, max_allowed_rounds, run_name):
 
-   # Declare data to gather
    round_num = 0
-   num_flags = helper.num_flagged(graph)
 
    # print 'Total nodes: ' + str(len(graph.node))
    # TODO: Variable finished condition for easy hook mod
@@ -109,7 +113,9 @@ A step in the simulation.
 '''
 ####################################################################################
 def round(graph, max_weight, run_name):
-
+   _now = helper.date_time()
+   print helper.time_diff(_now, last_timestamp)
+   
    config.before_round_start(graph, max_weight, run_name)
 
    # Deep copy graph after pre-round graph changes
