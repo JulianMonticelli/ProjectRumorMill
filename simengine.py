@@ -29,7 +29,7 @@ import datetime
 # Simulation setup
 import simdefaults as defaults
 import simhelper as helper
-import simconfig as config
+import adv_zombie_config as config
 # Replace ^ that argument for different simulations
 
 
@@ -126,8 +126,21 @@ A step in the simulation.
 '''
 ####################################################################################
 def round(graph, max_weight, run_name):
-   
-   config.before_round_start(graph, max_weight, run_name)
+
+   # Declare empty list for graph changes
+   add_node_list = []
+   remove_node_list = []
+   add_edge_list = []
+   remove_edge_list = []
+
+   # Deal with potential before-round graph changes (edge addition/removals)
+   config.before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name)
+
+   # Perform graph changes, if there are any
+   helper.modify_graph_edges(graph, add_edge_list, remove_edge_list)
+
+   # Fix edge attributes as config deems necessary
+   config.post_edge_modification(graph, add_edge_list, run_name)
 
    # Deep copy graph after pre-round graph changes
    graph_copy = copy.deepcopy(graph)
@@ -135,7 +148,16 @@ def round(graph, max_weight, run_name):
    for node in nx.nodes(graph):
       config.on_node(graph, graph_copy, node, max_weight, run_name)
 
-   config.after_round_end(graph, run_name)
+   # Deal with potential post-round graph changes (node addition/removals)
+   config.after_round_end(graph, add_node_list, remove_node_list, run_name)
+
+   # Fix node attributes as config deems necessary
+   # Also, any reconsiderations 
+   config.post_node_modification(graph, add_node_list, run_name)
+
+   # Perform graph changes, if there are any
+   helper.modify_graph_nodes(graph, add_node_list, remove_node_list)
+
 
 ####################################################################################
 
