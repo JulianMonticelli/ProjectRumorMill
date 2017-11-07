@@ -1,5 +1,6 @@
 import networkx as nx
 import random as rand
+import copy
 import datetime
 from time import sleep
 
@@ -617,6 +618,22 @@ Returns whether or not a round has exceeded a round limit.
 ####################################################################################
 def exceeded_round_limit(curr_round, max_rounds):
    return curr_round > max_rounds
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns a deep copy of a graph provided to the function
+    Args:
+        graph: The graph that shall be copied
+		
+    Returns:
+	    A deep-copy of the original graph
+'''
+####################################################################################
+def copy_graph(graph):
+   return copy.deepcopy(graph)
 ####################################################################################
 
 

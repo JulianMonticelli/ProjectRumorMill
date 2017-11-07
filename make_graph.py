@@ -56,6 +56,9 @@ def zombie(num_nodes=num_nodes, num_edges=num_edges, seed=seed):
    # The age of an agent, 20-100, will determine their speed/resilience
    helper.randomize_node_attribute(g, 'age', 18, 100)
    
+   # The morality of an agent, how likely they are to behave morally in dire situations
+   helper.randomize_node_attribute(g, 'morality', 1, 10)
+   
    # Initial edge weights for the likelihood of contact
    helper.randomize_edge_attribute(g, 'weight', 1, 10) # Large range in weights
    

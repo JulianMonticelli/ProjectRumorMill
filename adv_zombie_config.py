@@ -31,16 +31,26 @@ hunger_threshold_serious = 30000
 hunger_threshold_starving = 20000
 hunger_threshold_dire = 10000
 
-find_food_chance = .30
+find_food_chance = .01
 
 min_food_find = 0
 max_food_find = 3000
 
 min_water_find = 0
 max_water_find = 1000
-	
-food_per_round = 500
-water_per_round = 100
+
+starvation_damage = 2
+dehydration_damage = 3
+
+min_cannibalism_food_gain = 5000
+max_cannibalism_food_gain = 15000
+
+
+min_cannibalism_water_gain = 0
+max_cannibalism_water_gain = 350
+
+food_per_round = 2000
+water_per_round = 400
 
 # Keep these low...
 strength_multiplier = .005
@@ -54,6 +64,9 @@ heal_water_per_hp = 35
 
 infection_base_spread_chance = .15
 infection_damage_chance = .1
+
+# Since max negative strength count is -.19
+human_human_damage_chance = .2
 
 min_zombie_damage = 1
 max_zombie_damage = 30
@@ -80,11 +93,14 @@ human_human = 'HH'
 human_zombie = 'HZ'
 zombie_human = 'ZH'
 zombie_zombie = 'ZZ'
+alert = '!!'
 
 human_human_tag = left_tag_sep + human_human + right_tag_sep + post_tag
 human_zombie_tag = left_tag_sep + human_zombie + right_tag_sep + post_tag
 zombie_human_tag = left_tag_sep + zombie_human + right_tag_sep + post_tag
 zombie_zombie_tag = left_tag_sep + zombie_zombie + right_tag_sep + post_tag
+
+alert_tag = left_tag_sep + alert + right_tag_sep + post_tag
 
 DEBUG_STORY = True
 
@@ -251,17 +267,13 @@ def on_not_flagged(graph, graph_copy, node, max_weight, run_name):
 
    # Do we find food? 
    if (helper.chance(find_food_chance)):
-      food_find = rand.randint(min_food_find, max_food_find)
-      water_find = rand.randint(min_water_find, max_water_find)
-      
-      graph.node[node]['food'] += food_find
-      graph.node[node]['water'] += water_find
+      handle_find_food(graph, node)
 
    # Leader nodes and non-leader nodes think differently
    if not node == leader_node:
       for neighbor in nx.all_neighbors(graph, node):
          if not graph.node[neighbor]['infected']:
-            human_human_interaction(graph, node, neighbor, max_weight)
+            human_human_interaction(graph, node, neighbor, max_weight, run_name)
             # If ever our currently considered node is dead, return
             if (is_dead(graph, node)):
                return
@@ -288,10 +300,18 @@ def on_not_flagged(graph, graph_copy, node, max_weight, run_name):
 
 
 ####################################################################################
-
+'''
+Handles humans finding food.
+'''
 ####################################################################################
 def handle_find_food(graph, node):
-   noop = 0
+   food_find = rand.randint(min_food_find, max_food_find)
+   water_find = rand.randint(min_water_find, max_water_find)
+   
+   print alert_tag + node + ' finds ' + str(food_find) + ' food and ' + str(water_find) + ' water.'
+   
+   graph.node[node]['food'] += food_find
+   graph.node[node]['water'] += water_find
 ####################################################################################
 
 
@@ -310,10 +330,15 @@ Method that deals with the interaction between humans.
 def human_human_interaction(graph, source, dest, max_weight, run_name):
    edge_weight = graph.edge[source][dest]['weight']
    # Does anything happen at all?
-   if ( helper.roll_weight( curr_weight, max_weight ) ):
+   if ( helper.roll_weight( edge_weight, max_weight ) ):
       if ( graph.node[source]['food'] < hunger_threshold_dire):
          if ( helper.roll_weight ( max_morality - graph.node[source]['morality'], max_morality) ):
-            attempt_to_cannibalize(graph, source, dest)
+            if (attempt_to_cannibalize(graph, source, dest)):
+               if (DEBUG_STORY):
+                  cannibalism_food_gain = rand.randint(min_cannibalism_food_gain, max_cannibalism_food_gain)
+                  cannibalism_water_gain = rand.randint(min_cannibalism_water_gain, max_cannibalism_water_gain)  
+                  print alert_tag + source + ' consumes ' + dest + ' and gains ' + str(cannibalism_food_gain) \
+                        + ' food and ' + str(cannibalism_water_gain) + ' water.'
       # Cannibalizing is the only concern currently
       if ( is_dead(graph, source) ):
          return
@@ -325,7 +350,7 @@ def human_human_interaction(graph, source, dest, max_weight, run_name):
 
 ####################################################################################
 def is_dead(graph, node):
-   return (graph.node[node]['health'] <= 0)
+   return graph.node[node]['health'] <= 0
 ####################################################################################
 
 
@@ -340,10 +365,51 @@ def handle_leader_node(graph, leader, max_weight, run_name):
 
 
 ####################################################################################
+'''
+Human-human cannibalization attempt for extremely hungry humans.
+    Args:
+        graph: A networkx graph instance
+        source: A source node (the one attempting to cannibalize the victim)
+        dest: A destination node (the victim of the cannibalization attempt)
 
+    Returns:
+        True: if the aggressor can cannibalize the victim
+        False: if the victim has survived
+'''
 ####################################################################################
 def attempt_to_cannibalize(graph, source, dest):
-   noop = 0
+   source_str = graph.node[source]['strength']
+   dest_str = graph.node[dest]['strength']
+   source_str_advantage = (source_str-dest_str) * strength_multiplier
+   if (DEBUG_STORY):
+      print human_human_tag + 'Desperate, ' + source + ' tries to attack',
+      print dest + ' in an attempt to cannibalize ' + dest + '!'
+   if (helper.chance(human_human_damage_chance + source_str_advantage)):
+      damage_amount = rand.randint(min_human_damage, max_human_damage)
+      graph.node[dest]['health'] -= damage_amount
+      if (DEBUG_STORY):
+         print human_human_tag + source,
+         damage_message(damage_amount, dest)
+         print ' for ' + str(damage_amount) + ' damage.'
+   if (is_dead(graph, dest)):
+      if (DEBUG_STORY):
+         print alert_tag + source + ' has killed ' + dest + ' out of hunger.'
+         return True
+   
+   # If the dest is still alive to defend itself, regardless of
+   if (DEBUG_STORY):
+      print human_human_tag + dest + ' attempts to defend themself from ' + source + '.'
+   if (helper.chance(human_human_damage_chance - source_str_advantage)):
+      damage_amount = rand.randint(min_human_damage, max_human_damage)
+      graph.node[source]['health'] -= damage_amount
+      if (DEBUG_STORY):
+         print human_human_tag + dest,
+         damage_message(damage_amount, source)
+         print ' for ' + str(damage_amount) + ' damage.'
+   if (is_dead(graph, source)):
+      if (DEBUG_STORY):
+         print alert_tag + dest + ' has killed ' + source + ' in self-defense.'
+   return False
 ####################################################################################
 
 
@@ -423,15 +489,27 @@ Hook for changing the graph at the beginning of the round. Note that this takes 
 '''
 ####################################################################################
 def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name):
-
    for node in graph.node:
       for neighbor in nx.all_neighbors(graph, node):
          if helper.chance( chance_lose_edge ):
             helper.add_edge_to_list(remove_edge_list, node, neighbor)
-         if helper.chance( chance_gain_edge ):
-            second_node = rand.choice(graph.nodes())
-            helper.add_edge_to_list(add_edge_list, node, second_node)
+         if helper.chance( chance_gain_edge / 2 ):
+            gain_edge(graph, node, add_edge_list, run_name)
+         if helper.chance( chance_gain_edge / 2 ):
+            gain_edge(graph, neighbor, add_edge_list, run_name)
 ####################################################################################
+
+
+
+def gain_edge(graph, node, add_edge_list, run_name):
+   # Avoid self-edges and infinite loops:
+   second_node = node
+   if (graph.number_of_nodes > 1):
+      while(second_node == node):
+         second_node = rand.choice(graph.nodes())
+   else:
+      return
+   helper.add_edge_to_list(add_edge_list, node, second_node)
 
 
 
@@ -448,7 +526,7 @@ def post_edge_modification(graph, add_edge_list, run_name):
    for u,v in add_edge_list:
       helper.randomize_edge_list_attribute(graph, add_edge_list, 'weight', 1, 10)
 
-   # Reconsider max betweenness node
+   # Reconsider max betweenness nodes
    
 ####################################################################################
 
@@ -469,11 +547,31 @@ Hook for considering a node in the graph.
 def after_round_end(graph, add_node_list, remove_node_list, run_name):
    
    for node in graph.node:
+      is_starving = False
+      is_dehydrated = False
+      if (is_dead(graph, node)):
+         helper.add_node_to_list(remove_node_list, node)
+         continue
+
       graph.node[node]['food'] -= food_per_round
       graph.node[node]['water'] -= water_per_round
 	  
-      if (graph.node[node]['food'] <= 0 or graph.node[node]['water'] <= 0 or graph.node[node]['health'] <= 0):
+      if (graph.node[node]['food'] <= 0):
+         is_starving = True
+         graph.node[node]['health'] -= starvation_damage
+      if (graph.node[node]['water'] <= 0):
+         is_dehydrated = True
+         graph.node[node]['health'] -= dehydration_damage
+      if (is_dead(graph, node)):
          helper.add_node_to_list(remove_node_list, node)
+         if (DEBUG_STORY):
+            if (is_starving and is_dehydrated):
+               print alert_tag + node + ' died from starvation and dehydration!'
+            elif (is_starving):
+               print alert_tag + node + ' died from starvation!'
+            elif (is_dehydrated):
+               print alert_tag + node + ' died from dehydration!'
+         continue
 
 ####################################################################################
 
@@ -581,19 +679,21 @@ Hook for finishing the simulation run on the current graph.
 def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
    global total_simulations, humans_lost, humans_won, humans_left_total, humans_left_min, humans_left_max
    
+   run_tag = left_tag_sep + run_name + right_tag_sep + post_tag
+   
    total_simulations += 1
    if (finish_code < 0):
-      print 'Graph ran until completion. Failed to infect all humans, zombies not dead.'
+      print run_tag + 'Graph ran until completion. Failed to infect all humans, zombies not dead.'
    elif(finish_code == 1):
-      print 'Humans are all dead - zombies remain'
+      print run_tag + 'Humans are all dead - zombies remain'
       humans_lost += 1
    elif(finish_code == 2):
-      print 'Zombies are all dead - humans have prevailed!'
+      print run_tag + 'Zombies are all dead - humans have prevailed!'
       humans_won += 1
    elif(finish_code == 3):
-      print 'Somehow, there was nothing left (starvation might have gotten all zombies and humans!)'
+      print run_tag + 'Somehow, there was nothing left (starvation might have gotten all zombies and humans!)'
       return
-
+   print '\n\n'
    humans_left = 0
    for node in graph.node:
       if not (graph.node[node]['infected']):

@@ -143,7 +143,7 @@ def round(graph, max_weight, run_name):
    config.post_edge_modification(graph, add_edge_list, run_name)
 
    # Deep copy graph after pre-round graph changes
-   graph_copy = copy.deepcopy(graph)
+   graph_copy = helper.copy_graph(graph)
 
    for node in nx.nodes(graph):
       config.on_node(graph, graph_copy, node, max_weight, run_name)
