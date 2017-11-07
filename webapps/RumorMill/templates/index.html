@@ -14,39 +14,132 @@
         </style>
     </head>
     <body>
-        <div id="mynetwork"></div>
-        <a href="/runsim" type="button">Run simulation</a>
-        <script type="text/javascript">
-            var nodelist = {{nodes|safe}};
-            var edgelist = {{edges|safe}};
-            var n = [];
-            var e = [];
-            for (var i = 0; i < nodelist.length; i++) {
-                var node = {id:nodelist[i][0], label:nodelist[i][1]};
-                n.push(node);
-            }
-            for (var i = 0; i < edgelist.length; i++) {
-                var edge = {from:edgelist[i][0], to:edgelist[i][1]};
-                e.push(edge);
-            }
-            var nodes = new vis.DataSet(n);
-            var edges = new vis.DataSet(e);
-            var container = document.getElementById('mynetwork');
-            var data = {
-                nodes: nodes,
-                edges: edges
-            };
-            for (var i = 0; i < nodelist.length; i++) {
-                if (nodelist[i][2] == 1) {
+      <div id="mynetwork"></div>
+      <button type="button" onclick="sendInitRequest()">Init Graph</button>
+      <button type="button" onclick="sendRequest()">Run 1 Round</button>
+      <button type="button" onclick="repeatRequest()">Run 100 Rounds</button>
+      <!--input type="checkbox" id="forget">Forget</input>
+      <input type="checkbox" id="acquisition">Acquisition</input-->
+      <script type="text/javascript">
+          var nodelist = {{nodes|safe}};
+          var edgelist = {{edges|safe}};
+          var n = [];
+          var e = [];
+          for (var i = 0; i < nodelist.length; i++) {
+              var node = {id:nodelist[i][0], label:nodelist[i][1]};
+              n.push(node);
+          }
+          for (var i = 0; i < edgelist.length; i++) {
+              var edge = {from:edgelist[i][0], to:edgelist[i][1]};
+              e.push(edge);
+          }
+          var nodes = new vis.DataSet(n);
+          var edges = new vis.DataSet(e);
+          var container = document.getElementById('mynetwork');
+          var data = {
+              nodes: nodes,
+              edges: edges
+          };
+          for (var i = 0; i < nodelist.length; i++) {
+              if (nodelist[i][2] == 1) {
+                  currnode = nodes.get(nodelist[i][0]);
+                  currnode.color = {
+                      background: 'red'
+                  };
+                  nodes.update(currnode);
+              }
+              else {
                     currnode = nodes.get(nodelist[i][0]);
                     currnode.color = {
-                        background: 'red'
+                        background: 'blue'
                     };
                     nodes.update(currnode);
                 }
             }
             var options = {};
             var network = new vis.Network(container, data, options);
-        </script>
-    </body>
-</html>
+            var req;
+
+            function sleep(ms) {
+              return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            async function repeatRequest() {
+              for (var i = 0; i < 100; i++) {
+                sendRequest()
+                await sleep(500);
+              }
+            }
+
+            function sendInitRequest() {
+              if (window.XMLHttpRequest) {
+                req = new XMLHttpRequest();
+              } else {
+                req = new ActiveXObject("Microsoft.XMLHTTP");
+              }
+              //var forget = document.getElementById("forget").checked.toString();
+              //var acquisition = document.getElementById("acquisition").checked.toString();
+              //params = "forget="+forget+"&acquisition="+acquisition;
+              req.onreadystatechange = getNode;
+              req.open("GET", "http://127.0.0.1:8000/init_graph", true);
+              //req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+              req.send();//params);
+            }
+
+
+
+function sendRequest() {
+  if (window.XMLHttpRequest) {
+    req = new XMLHttpRequest();
+  } else {
+    req = new ActiveXObject("Microsoft.XMLHTTP");
+  }
+  //var forget = document.getElementById("forget").checked.toString();
+  //var acquisition = document.getElementById("acquisition").checked.toString();
+  //params = "forget="+forget+"&acquisition="+acquisition;
+  req.onreadystatechange = getNode;
+  req.open("GET", "http://127.0.0.1:8000/get_graph", true);
+  //req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  req.send();//params);
+}
+function getNode() {
+  if (req.readyState != 4 || req.status != 200) {
+    return;
+  }
+  //var p = document.getElementById("content");
+
+  //var n = JSON.parse(req.responseText);
+  nodelist = req.responseText;
+  nodelist = JSON.parse(nodelist);
+  var n = [];
+            for (var i = 0; i < nodelist.length; i++) {
+                var node = {id:nodelist[i][0], label:nodelist[i][1]};
+                n.push(node);
+            }
+for (var i = 0; i < nodelist.length; i++) {
+                if (nodelist[i][2] == 1) {
+                    currnode = nodes.get(n[i].id);
+                    currnode.color = {
+                        background: 'red'
+                    };
+                    nodes.update(currnode);
+                }
+                else if (nodelist[i][2] == 0) {
+                    currnode = nodes.get(n[i].id);
+                    currnode.color = {
+                        background: 'blue'
+                      };
+                      nodes.update(currnode);
+                  }
+                else {
+                    currnode = nodes.get(n[i].id);
+                    currnode.color = {
+                        background: 'black'
+                      };
+                      nodes.update(currnode);
+                  }
+              }
+  }
+          </script>
+      </body>
+  </html>
