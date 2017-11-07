@@ -64,6 +64,11 @@ heal_water_per_hp = 35
 
 infection_base_spread_chance = .15
 infection_damage_chance = .1
+post_zombie_human_death_zombie_conversion_rate = 5
+
+rise_from_dead_min_hp = 30
+rise_from_dead_max_hp = 100
+
 
 # Since max negative strength count is -.19
 human_human_damage_chance = .2
@@ -109,8 +114,16 @@ DEBUG_STORY = True
 #######################
 num_nodes = 0 # The number of nodes in a starter graph
 total_simulations = 0
-humans_lost = 0
+
+zombies_won = 0
 humans_won = 0
+no_survivors = 0
+num_failed = 0
+
+zombies_left_total = 0
+zombies_left_min = float('inf')
+zombies_left_max = float('-inf')
+
 humans_left_total = 0
 humans_left_min = float('inf')
 humans_left_max = float('-inf')
@@ -137,17 +150,31 @@ def simulation_driver():
       graphcopy = copy.deepcopy(graph)
       init(graphcopy, n, sim_name)
       engine.simulate(graphcopy, num_runs, sim_name)
-	  
 
-   average_humans_left = (humans_left_total / (float(humans_won)))
+   average_humans_left = 0
+   average_zombies_left = 0
+
+   if (humans_won > 0):
+      average_humans_left = (humans_left_total / (float(humans_won)))
+   if (zombies_won > 0):
+      average_zombies_left = (zombies_left_total / (float(zombies_won)))
+
    print '\n' * 2
    print '*' * defaults.asterisk_space_count
    print 'Simulations complete.'
    print '*' * defaults.asterisk_space_count + '\n' * 2
-   print 'Simulation runs where humans were desolated: ' + str(humans_lost)
+   print 'Simulation runs where humans were desolated: ' + str(zombies_won)
    print 'Simulation runs where humans prevailed: ' + str(humans_won)
+   print 'Simulation runs where nothing remained: ' + str(no_survivors)
+   print 'Simulation runs that failed (> max rounds): ' + str(num_failed)
    print 'Total number of simulations runs:    ' + str(total_simulations)
    print '\n'
+   print 'Zombie won statistics:'
+   print '\n'
+   print 'Minimum zombies left: ' + str(zombies_left_min)
+   print 'Average zombies left: ' + str(average_zombies_left)
+   print 'Maximum zombies left: ' + str(zombies_left_max)
+   print '\n\n'
    print 'Humans won statistics:\n'
    print 'Minimum humans left: ' + str(humans_left_min)
    print 'Average humans left: ' + str(average_humans_left)
@@ -308,7 +335,7 @@ def handle_find_food(graph, node):
    food_find = rand.randint(min_food_find, max_food_find)
    water_find = rand.randint(min_water_find, max_water_find)
    
-   print alert_tag + node + ' finds ' + str(food_find) + ' food and ' + str(water_find) + ' water.'
+   print alert_tag + node + ' finds provisions, and gains ' + str(food_find) + ' food and ' + str(water_find) + ' water.'
    
    graph.node[node]['food'] += food_find
    graph.node[node]['water'] += water_find
@@ -337,7 +364,7 @@ def human_human_interaction(graph, source, dest, max_weight, run_name):
                if (DEBUG_STORY):
                   cannibalism_food_gain = rand.randint(min_cannibalism_food_gain, max_cannibalism_food_gain)
                   cannibalism_water_gain = rand.randint(min_cannibalism_water_gain, max_cannibalism_water_gain)  
-                  print alert_tag + source + ' consumes ' + dest + ' and gains ' + str(cannibalism_food_gain) \
+                  print alert_tag + source + ' cannibalizes ' + dest + ' and gains ' + str(cannibalism_food_gain) \
                         + ' food and ' + str(cannibalism_water_gain) + ' water.'
       # Cannibalizing is the only concern currently
       if ( is_dead(graph, source) ):
@@ -462,18 +489,27 @@ def will_spread(source, dest, graph, max_weight, run_name):
             damage_message(human_zombie_damage, source)
             print ', dealing '  + str(human_zombie_damage) + ' damage to ' + source
 
-      # If we transmit the infection
+      # If we transmit the infection - biting deals no damage
       if ( helper.chance((infection_base_spread_chance + inf_chance_mod)) ):
-         
-         # Check for damage to human (who is now a zombie)
-         if ( helper.chance(infection_damage_chance + str_chance) ):
-            zombie_human_damage = rand.randint(min_zombie_damage, max_zombie_damage)
-            if (DEBUG_STORY):
-               print zombie_human_tag + source + ' closes in on ' + dest + ', and',
-               damage_message(zombie_human_damage, dest)
-               print ', dealing ' + str(zombie_human_damage) + ' damage to ' + dest
-            graph.node[dest]['health'] -= rand.randint(min_zombie_damage, max_zombie_damage)
+         print zombie_human_tag + source + ' bites ' + dest + '!'
          return True
+
+      # Check for damage to human (if they have not been turned into a zombie)
+      if ( helper.chance(infection_damage_chance + str_chance) ):
+         zombie_human_damage = rand.randint(min_zombie_damage, max_zombie_damage)
+         if (DEBUG_STORY):
+            print zombie_human_tag + source + ' closes in on ' + dest + ', and',
+            damage_message(zombie_human_damage, dest)
+            print ', dealing ' + str(zombie_human_damage) + ' damage to ' + dest
+         graph.node[dest]['health'] -= rand.randint(min_zombie_damage, max_zombie_damage)
+         if (is_dead(graph, dest)):
+            if (DEBUG_STORY):
+               print alert_tag + dest + ' has been killed by a zombie.'
+            if (helper.chance(post_zombie_human_death_zombie_conversion_rate)):
+               if (DEBUG_STORY):
+                  print alert_tag + dest + ' has risen from the dead and become a zombie.'
+               graph.node[dest]['health'] = rand.randint(rise_from_dead_min_hp, rise_from_dead_max_hp)
+               return True
    return False
 ####################################################################################
 
@@ -677,30 +713,37 @@ Hook for finishing the simulation run on the current graph.
 '''
 ####################################################################################
 def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
-   global total_simulations, humans_lost, humans_won, humans_left_total, humans_left_min, humans_left_max
-   
+   global total_simulations
+   global zombies_won, humans_won, no_survivors, num_failed
+   global humans_left_total, humans_left_min, humans_left_max
+   global zombies_left_total, zombies_left_min, zombies_left_max
    run_tag = left_tag_sep + run_name + right_tag_sep + post_tag
-   
+
+
    total_simulations += 1
    if (finish_code < 0):
       print run_tag + 'Graph ran until completion. Failed to infect all humans, zombies not dead.'
+      num_failed += 1
    elif(finish_code == 1):
       print run_tag + 'Humans are all dead - zombies remain'
-      humans_lost += 1
+      zombies_won += 1
+      zombies_left = graph.number_of_nodes()
+      zombies_left_total += zombies_left
+      zombies_left_min = min(zombies_left, zombies_left_min)
+      zombies_left_max = max(zombies_left, zombies_left_max)
+
    elif(finish_code == 2):
       print run_tag + 'Zombies are all dead - humans have prevailed!'
       humans_won += 1
+      humans_left = graph.number_of_nodes()
+      humans_left_total += humans_left
+      humans_left_min = min(humans_left, humans_left_min)
+      humans_left_max = max(humans_left, humans_left_max)
    elif(finish_code == 3):
       print run_tag + 'Somehow, there was nothing left (starvation might have gotten all zombies and humans!)'
+      no_survivors += 1
       return
    print '\n\n'
-   humans_left = 0
-   for node in graph.node:
-      if not (graph.node[node]['infected']):
-         humans_left += 1
-   humans_left_total += humans_left
-   humans_left_min = min(humans_left, humans_left_min)
-   humans_left_max = max(humans_left, humans_left_max)
 ####################################################################################
 
 
