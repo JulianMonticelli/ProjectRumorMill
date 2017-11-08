@@ -1,6 +1,8 @@
 import networkx as nx
 import random as rand
+import copy
 import datetime
+import traceback as tb
 from time import sleep
 
 import simdefaults as defaults
@@ -103,10 +105,12 @@ Given a percentage chance (0.0 - 1.0), roll for that chance.
 ####################################################################################
 def chance(percentage_chance):
    if (percentage_chance > 1):
-      print 'Percentage chance should never be MORE than 1. Even if you want 100% rolls.'
+      print 'Percentage chance should never be MORE than 1. Even if you want 100% rolls. (PC: ' + str(percentage_chance) + ')'
+      tb.print_tb(None)
       return True
    if (percentage_chance <= 0):
-      print 'Percentage chance being less than or equal to 0 will always reslult in a failure.' 
+      print 'Percentage chance being less than or equal to 0 will always result in a failure. (PC: ' + str(percentage_chance) + ')'
+      tb.print_tb(None)
       return False
    if (rand.random() <= percentage_chance):
       return True
@@ -207,6 +211,7 @@ def time_diff(ts1, ts2):
 ####################################################################################
 
 
+
 ####################################################################################
 '''
 Creates an attribute with an initial value.
@@ -224,6 +229,39 @@ def create_node_attribute(graph, attr, init_value):
 
 ####################################################################################
 '''
+Creates an attribute with an initial value on a specific node.
+    Args:
+        graph: A graph for our simulation
+        node: A specific node for 
+        attr: An attribute name
+        init_value: A value that we will initialize our attribute with
+'''
+####################################################################################
+def create_single_node_attribute(graph, node, attr, init_value):
+   graph.node[node][attr] = init_value
+####################################################################################
+
+
+
+####################################################################################
+'''
+Creates an attribute with an initial value given a list of nodes.
+    Args:
+        graph: A graph for our simulation
+        node_list: A list of nodes for which to modify an attribute
+        attr: An attribute name
+        init_value: A value that we will initialize our attribute with
+'''
+####################################################################################
+def create_node_list_attribute(graph, node_list, attr, init_value):
+   for node in node_list:
+      graph.node[node][attr] = init_value
+####################################################################################
+
+
+
+####################################################################################
+'''
 Randomizes attributes of all nodes in a graph to a value in a specified range.
     Args:
         graph: A graph for our simulation
@@ -234,6 +272,41 @@ Randomizes attributes of all nodes in a graph to a value in a specified range.
 ####################################################################################
 def randomize_node_attribute(graph, attr, low, high):
    for node in graph.node:
+      graph.node[node][attr] = rand.randint(low, high)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Randomizes attributes of a single node in a graph to a value in a specified range.
+    Args:
+        graph: A graph for our simulation
+        node: A specific node in the graph
+        attr: An attribute name
+        low: A low value (inclusive) for our range
+        high: A high value (inclusive) for our range
+'''
+####################################################################################
+def randomize_single_node_attribute(graph, node, attr, low, high):
+   graph.node[node][attr] = rand.randint(low, high)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Randomizes attributes of all nodes in a graph to a value in a specified range.
+    Args:
+        graph: A graph for our simulation
+        node_list: A list of nodes for which to modify an attribute
+        attr: An attribute name
+        low: A low value (inclusive) for our range
+        high: A high value (inclusive) for our range
+'''
+####################################################################################
+def randomize_node_list_attribute(graph, attr, low, high):
+   for node in node_list:
       graph.node[node][attr] = rand.randint(low, high)
 ####################################################################################
 
@@ -259,6 +332,43 @@ def randomize_node_attribute_boolean(graph, attr, true_chance):
 
 ####################################################################################
 '''
+Randomizes a single node attribute boolean values given a percentage that node
+attributes are set to true.
+    Args:
+        graph: A graph for our simulation
+        node: A node whose attribute we will modify
+        attr: An attribute name
+        true_chance: A chance that your boolean will be initialized as true
+                     given any node
+'''
+####################################################################################
+def randomize_single_node_attribute_boolean(graph, node, attr, true_chance):
+   graph.node[node][attr] = chance(true_chance)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Randomizes list nodes attribute boolean values given a percentage that node attributes 
+are set to true.
+    Args:
+        graph: A graph for our simulation
+        node_list: A list of nodes for which to modify an attribute
+        attr: An attribute name
+        true_chance: A chance that your boolean will be initialized as true
+                     given any node
+'''
+####################################################################################
+def randomize_node_list_attribute_boolean(graph, node_list, attr, true_chance):
+   for node in node_list:
+      graph.node[node][attr] = chance(true_chance)
+####################################################################################
+
+
+
+####################################################################################
+'''
 Creates an edge attribute with an initial value.
     Args:
         graph: A graph for our simulation
@@ -268,6 +378,40 @@ Creates an edge attribute with an initial value.
 ####################################################################################
 def create_edge_attribute(graph, attr, init_value):
    nx.set_edge_attributes(graph, attr, init_value)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Creates a single edge attribute with an initial value.
+    Args:
+        graph: A graph for our simulation
+        u: The source node of an edge
+        v: The destination node of an edge
+        attr: An attribute name
+        init_value: A value that the attribute will be initialized to
+'''
+####################################################################################
+def create_single_edge_attribute(graph, u, v, attr, init_value):
+   graph.edge[u][v][attr] = init_value
+####################################################################################
+
+
+
+####################################################################################
+'''
+Creates an edge attribute with an initial value across a list of edges.
+    Args:
+        graph: A graph for our simulation
+        edge_list: A list of edges for which to modify an attribute
+        attr: An attribute name
+        init_value: A value that the attribute will be initialized to
+'''
+####################################################################################
+def create_edge_list_attribute(graph, edge_list, attr, init_value):
+   for u,v in edge_list:
+      graph.edge[u][v][attr] = init_value
 ####################################################################################
 
 
@@ -293,7 +437,43 @@ def randomize_edge_attribute(graph, attr, low, high):
 
 ####################################################################################
 '''
-Randomizes edge attribute boolean values given a percentage that node attributes
+Randomizes attributes of a single edge in a graph to a value in a specified range.
+    Args:
+        graph: A graph for our simulation
+        u: A source node for our edge
+        v: A destination node for our edge
+        attr: An attribute name
+        low: A low value (inclusive) for our range
+        high: A high value (inclusive) for our range
+'''
+####################################################################################
+def randomize_single_edge_attribute(graph, u, v, attr, low, high):
+   graph.edge[u][v][attr] = rand.randint(low, high)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Randomizes attributes of all edges in a graph to a value in a specified range.
+    Args:
+        graph: A graph for our simulation
+        edge_list: A list of edges for which to modify attributes
+        attr: An attribute name
+        low: A low value (inclusive) for our range
+        high: A high value (inclusive) for our range
+'''
+####################################################################################
+def randomize_edge_list_attribute(graph, edge_list, attr, low, high):
+   for u,v in edge_list:
+      graph.edge[u][v][attr] = rand.randint(low, high)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Randomizes edge attribute boolean values given a percentage that edge attributes
 are set to true.
     Args:
         graph: A graph for our simulation
@@ -306,6 +486,41 @@ def randomize_edge_attribute_boolean(graph, attr, true_chance):
       for dest in graph.edge[source]:
          if source < dest or nx.is_directed(graph):
             graph.edge[source][dest][attr] = chance(true_chance)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Randomizes a single edge boolean value given a percentage that edge attributes
+are set to true.
+    Args:
+        graph: A graph for our simulation
+        u: A source node for our edge
+        v: A destination node for our edge
+        attr: An attribute name
+        true_chance: A chance that for any edge it will initialize to true
+'''
+####################################################################################
+def randomize_single_edge_attribute_boolean(graph, u, v, attr, true_chance):
+   graph.edge[u][v][attr] = chance(true_chance)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Randomizes edge list attribute boolean values given a percentage that edge attributes
+are set to true.
+    Args:
+        graph: A graph for our simulation
+        attr: An attribute name
+        true_chance: A chance that for any edge it will initialize to true
+'''
+####################################################################################
+def randomize_edge_attribute_boolean(graph, edge_list, attr, true_chance):
+   for u,v in edge_list:
+      graph.edge[u][v][attr] = chance(true_chance)
 ####################################################################################
 
 
@@ -412,12 +627,118 @@ def exceeded_round_limit(curr_round, max_rounds):
 
 ####################################################################################
 '''
-Removes an node and all adjacent edges from the graph.
+Returns a deep copy of a graph provided to the function
     Args:
-        graph: The current graph for the simulation
-        node: The node that is to be killed
+        graph: The graph that shall be copied
+		
+    Returns:
+	    A deep-copy of the original graph
 '''
 ####################################################################################
-def kill_node(graph, node):
-   graph.remove_node(node)
+def copy_graph(graph):
+   return copy.deepcopy(graph)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Modifies the graph and adds and removes edges and nodes that are provided.
+    Args:
+        graph: The current graph for the simulation
+        add_node_list: A list of nodes to be added
+        remove_node_list: A list of nodes to be removed
+        add_edge_list: A list of edges to be added
+        remove_edge_list: A list of edges to be removed
+'''
+####################################################################################
+def modify_graph(graph, add_node_list, remove_node_list, add_edge_list, remove_edge_list):
+   modify_graph_edges(graph, add_edge_list, remove_edge_list)
+   modify_graph_nodes(graph, add_node_list, remove_node_list)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Modifies the graph and specifically deals with removing edges.
+    Args:
+        graph: The current graph for the simulation
+        add_edge_list: A list of edges to be added
+        remove_edge_list: A list of edges to be removed
+'''
+####################################################################################
+def modify_graph_edges(graph, add_edge_list, remove_edge_list):
+   for v1,v2 in remove_edge_list:
+      graph.remove_edge(v1, v2)
+   for v1,v2 in add_edge_list:
+      graph.add_edge(v1, v2)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Modifies the graph and specifically deals with removing nodes.
+    Args:
+        graph: The current graph for the simulation
+        add_node_list: A list of nodes to be added
+        remove_node_list: A list of nodes to be removed
+'''
+####################################################################################
+def modify_graph_nodes(graph, add_node_list, remove_node_list):
+   for v in remove_node_list:
+      graph.remove_node(v)
+   for v in add_node_list:
+      graph.add_node(v)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Takes an edge list and appends a (node, node) tuple to represent an edge.
+    Args:
+        edge_list: A list that holds edges
+        u: The "source" node from an edge (arbitrary if undirected)
+        v: The "destination" node from an edge (arb. if undirected)
+        undirected: An assumed-true variable that dictates whether we should consider
+                    both edges u,v and v,u
+'''
+####################################################################################
+def add_edge_to_list(edge_list, u, v, undirected=True):
+   # If a graph is undirected, check edge v,u as well as u,v
+   if (undirected):
+      if (tuple([v,u]) in edge_list):
+         return # We do not want to continue
+
+   # If there is not a conflict in the list, add the list
+   if (tuple([u,v]) not in edge_list):
+      edge_list.append(tuple([u, v]))
+####################################################################################
+
+
+
+####################################################################################
+'''
+Helper template.
+    Args:
+        arg1: Description
+'''
+####################################################################################
+####################################################################################
+
+
+
+####################################################################################
+'''
+Takes a list and appends a node to the list.
+    Args:
+        node_list: A list that holds nodes
+        node: A node to be added to a list
+'''
+####################################################################################
+def add_node_to_list(node_list, node):
+   if (node not in node_list):
+      node_list.append(node)
 ####################################################################################

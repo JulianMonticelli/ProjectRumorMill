@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 import networkx as nx
 import random as rand
 
@@ -11,7 +13,7 @@ seed      = 15203968721
 def main():
    # v Generates a normal graph
    #normal(num_nodes, num_edges, seed)
-   zombie(10000, 25000, seed)
+   zombie(300, 900, seed)
    
    
 def normal(num_nodes=num_nodes, num_edges=num_edges, seed=seed):
@@ -54,10 +56,13 @@ def zombie(num_nodes=num_nodes, num_edges=num_edges, seed=seed):
    # The age of an agent, 20-100, will determine their speed/resilience
    helper.randomize_node_attribute(g, 'age', 18, 100)
    
-   # Initial edge weights for the likelihood of contact
-   helper.randomize_edge_attribute(g, 'weight', 1, 100) # Large range in weights
+   # The morality of an agent, how likely they are to behave morally in dire situations
+   helper.randomize_node_attribute(g, 'morality', 1, 10)
    
-   write(g, 'custom_graphs/zombie_adv.graphml')
+   # Initial edge weights for the likelihood of contact
+   helper.randomize_edge_attribute(g, 'weight', 1, 10) # Large range in weights
+   
+   write(g, 'custom_graphs/small_zombie_adv.graphml')
    
    
    
