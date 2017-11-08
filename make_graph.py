@@ -13,7 +13,7 @@ seed      = 15203968721
 def main():
    # v Generates a normal graph
    #normal(num_nodes, num_edges, seed)
-   zombie(100, 250, seed)
+   zombie(300, 900, seed)
    
    
 def normal(num_nodes=num_nodes, num_edges=num_edges, seed=seed):
@@ -62,7 +62,7 @@ def zombie(num_nodes=num_nodes, num_edges=num_edges, seed=seed):
    # Initial edge weights for the likelihood of contact
    helper.randomize_edge_attribute(g, 'weight', 1, 10) # Large range in weights
    
-   write(g, 'custom_graphs/xsmall_zombie_adv.graphml')
+   write(g, 'custom_graphs/small_zombie_adv.graphml')
    
    
    

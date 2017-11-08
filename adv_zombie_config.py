@@ -64,7 +64,7 @@ heal_water_per_hp = 35
 
 infection_base_spread_chance = .15
 infection_damage_chance = .1
-post_zombie_human_death_zombie_conversion_rate = 5
+post_zombie_human_death_zombie_conversion_rate = .5
 
 rise_from_dead_min_hp = 30
 rise_from_dead_max_hp = 100
@@ -107,7 +107,7 @@ zombie_zombie_tag = left_tag_sep + zombie_zombie + right_tag_sep + post_tag
 
 alert_tag = left_tag_sep + alert + right_tag_sep + post_tag
 
-DEBUG_STORY = True
+DEBUG_STORY = False 
 
 #######################
 # Global data         #
@@ -268,7 +268,8 @@ def on_flagged(graph, graph_copy, node, max_weight, run_name):
          
          # If the neighbor will be infected, then infect the neighbor
          if (will_spread(node, neighbor, graph, max_weight, run_name)):
-            print zombie_human_tag + node + ' has infected ' + neighbor + ', who is now a zombie.'
+            if (DEBUG_STORY):
+               print zombie_human_tag + node + ' has infected ' + neighbor + ', who is now a zombie.'
             graph.node[neighbor]['infected'] = True
 ####################################################################################
 
@@ -335,7 +336,8 @@ def handle_find_food(graph, node):
    food_find = rand.randint(min_food_find, max_food_find)
    water_find = rand.randint(min_water_find, max_water_find)
    
-   print alert_tag + node + ' finds provisions, and gains ' + str(food_find) + ' food and ' + str(water_find) + ' water.'
+   if (DEBUG_STORY):
+      print alert_tag + node + ' finds provisions, and gains ' + str(food_find) + ' food and ' + str(water_find) + ' water.'
    
    graph.node[node]['food'] += food_find
    graph.node[node]['water'] += water_find
@@ -361,9 +363,9 @@ def human_human_interaction(graph, source, dest, max_weight, run_name):
       if ( graph.node[source]['food'] < hunger_threshold_dire):
          if ( helper.roll_weight ( max_morality - graph.node[source]['morality'], max_morality) ):
             if (attempt_to_cannibalize(graph, source, dest)):
+               cannibalism_food_gain = rand.randint(min_cannibalism_food_gain, max_cannibalism_food_gain)
+               cannibalism_water_gain = rand.randint(min_cannibalism_water_gain, max_cannibalism_water_gain)  
                if (DEBUG_STORY):
-                  cannibalism_food_gain = rand.randint(min_cannibalism_food_gain, max_cannibalism_food_gain)
-                  cannibalism_water_gain = rand.randint(min_cannibalism_water_gain, max_cannibalism_water_gain)  
                   print alert_tag + source + ' cannibalizes ' + dest + ' and gains ' + str(cannibalism_food_gain) \
                         + ' food and ' + str(cannibalism_water_gain) + ' water.'
       # Cannibalizing is the only concern currently
@@ -386,8 +388,15 @@ def is_dead(graph, node):
 
 ####################################################################################
 def handle_leader_node(graph, leader, max_weight, run_name):
-   noop = 0
+   for neighbor in nx.all_neighbors(graph, leader):
+      edge_weight = graph.edge[leader][neighbor]['weight']
+      # If zombie neighbor, try to attack
+      if ( graph.node[neighbor]['infected'] and not is_dead(graph, neighbor) ):
+         if ( helper.roll_weight(edge_weight, max_weight) ):
+            damage = rand.randint(min_human_damage, max_human_damage)
+            # need to finish
 ####################################################################################
+
 
 
 
@@ -488,10 +497,15 @@ def will_spread(source, dest, graph, max_weight, run_name):
             print human_zombie_tag + source + ' approaches ' + dest + ', and ' + dest,
             damage_message(human_zombie_damage, source)
             print ', dealing '  + str(human_zombie_damage) + ' damage to ' + source
+            if ( is_dead(graph, source) ):
+               if (DEBUG_STORY):
+                  print human_zombie_tag + dest + ' has killed ' + source + ' in self-defense.'
+               return False
 
       # If we transmit the infection - biting deals no damage
       if ( helper.chance((infection_base_spread_chance + inf_chance_mod)) ):
-         print zombie_human_tag + source + ' bites ' + dest + '!'
+         if (DEBUG_STORY):
+            print zombie_human_tag + source + ' bites ' + dest + '!'
          return True
 
       # Check for damage to human (if they have not been turned into a zombie)
@@ -536,7 +550,16 @@ def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_n
 ####################################################################################
 
 
-
+####################################################################################
+'''
+A function to gain an edge to a random node.
+    Args:
+        graph: A graph instance
+        node: A node that we want to add an edge from
+        add_edge_list: A list of edges passed to us from the engine
+        run_name: The name of the run
+'''
+####################################################################################
 def gain_edge(graph, node, add_edge_list, run_name):
    # Avoid self-edges and infinite loops:
    second_node = node
@@ -546,7 +569,7 @@ def gain_edge(graph, node, add_edge_list, run_name):
    else:
       return
    helper.add_edge_to_list(add_edge_list, node, second_node)
-
+####################################################################################
 
 
 ####################################################################################
@@ -742,7 +765,7 @@ def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
    elif(finish_code == 3):
       print run_tag + 'Somehow, there was nothing left (starvation might have gotten all zombies and humans!)'
       no_survivors += 1
-      return
+
    print '\n\n'
 ####################################################################################
 
