@@ -146,6 +146,7 @@ Runs operations on a flagged node to determine if it will transmit information.
       run_name: The name of the current run
       talk_to_transmit: A boolean which indicates whether 'talk' equals to 'transmit'.
       transmit_chance: A floating number which is the probability of transmission when 'talk' doesn't equal to 'transmit'.
+
    Returns:
       NOTE: returns are optional
       given_flags: An integer showing how many nodes are flagged in this node operation.
@@ -312,12 +313,35 @@ Hook for changing the graph at the beginning of the round. Note that this takes 
    Args:
       graph: A networkx graph instance.
       max_weight: An integer which is the max weight of edges in this graph.
+      add_edge_list: A list of edges to add
+      remove_edge_list: A list of edges to remove
       run_name: The name of the current run 
 '''
 ####################################################################################
-def before_round_start(graph, max_weight, run_name):
+def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name):
    #for edge in graph.edge:
       # do something
+   return
+####################################################################################
+
+
+
+####################################################################################
+'''
+Hook for making changes to the graph after the before_round_start. Since the 
+before_round_start method adds edges, add_edge_list is passed along with the
+graph to easily add attributes to edges so that we don't need to worry about
+checking for which edges to add attributes to. If any overarching graph metric
+needs to be recalculated after changing graph edges, (i.e., betweenness, density)
+chamge them here.
+
+    Args:
+        graph: A networkx graph instance
+        add_edge_list: A list of edges we have added to the graph
+        run_name: A name for the simulation run
+'''
+####################################################################################
+def post_edge_modification(graph, add_edge_list, run_name):
    return
 ####################################################################################
 
@@ -335,7 +359,7 @@ Hook for considering a node in the graph.
       run_name: The name of the current run
 '''
 ####################################################################################
-def after_round_end(graph, run_name):
+def after_round_end(graph, add_node_list, remove_node_list, run_name):
    given_flags = 0
    removed_flags = 0
 
@@ -343,6 +367,26 @@ def after_round_end(graph, run_name):
       # do something
 
    return given_flags, removed_flags
+####################################################################################
+
+
+
+####################################################################################
+'''
+Hook for making changes to the graph after the after_round_start. Since the
+after_round_start method adds nodes, add_node_list is passed along with the
+graph to easily add attributes to nodes so that we don't need to worry about
+checking for which nodes to add attributes to. If any overarching graph metric
+needs to be recalculated after changing graph nodes (i.e. num nodes, etc.), 
+change them here.
+
+    Args:
+        graph: A networkx graph instance
+        add_node_list: A list of nodes we have added to the graph
+'''
+####################################################################################
+def post_node_modification(graph, add_node_list, run_name):
+   return # Add some code pls
 ####################################################################################
 
 

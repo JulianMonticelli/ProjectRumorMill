@@ -29,7 +29,7 @@ import datetime
 # Simulation setup
 import simdefaults as defaults
 import simhelper as helper
-import adv_zombie_config as config
+import simconfig as config
 # Replace ^ that argument for different simulations
 
 
