@@ -36,9 +36,10 @@ def simulation_driver():
    
    # Start from every node in the graph
    for n in graph.node:
+      sim_name = 'sim_' + str(n)
       graphcopy = copy.deepcopy(graph)
-      init(graphcopy, n)
-      engine.simulate(graphcopy, num_runs)
+      init(graphcopy, n, sim_name)
+      engine.simulate(graphcopy, num_runs, sim_name)
       
    # Output data
 ####################################################################################
@@ -58,13 +59,15 @@ Hook for considering a node in the graph.
 ####################################################################################
 def on_node(graph, graph_copy, node, max_weight, run_name):
 
-   if (graph_copy.node[node]['flagged']):
-      given_flags += on_flagged(graph, graph_copy, node, max_weight)
+   # Example branching - branch functions depending on a flag condition
 
-      # If the node does not know, and we can spontaneously come into knowing
+   # If node is flagged
+   if (graph_copy.node[node]['flagged']):
+      on_flagged(graph, graph_copy, node, max_weight, run_name)
+
+   # If the node is not flagged
    else:
-      given_flags += on_not_flagged(graph, graph_copy, node)
-   return given_flags, removed_flags
+      on_not_flagged(graph, graph_copy, node, run_name)
 ####################################################################################
 
 
@@ -78,10 +81,6 @@ Runs operations on a flagged node to determine if it will transmit a flag.
       node: A networkx node instance.
       max_weight: An integer which is the max weight of edges in this graph.
       run_name: The name of the current run
-	  
-   Returns:
-      NOTE: returns are optional
-      given_flags: An integer showing how many nodes are flagged in this node operation.
 '''
 ####################################################################################
 def on_flagged(graph, graph_copy, node, max_weight, run_name):
@@ -89,17 +88,13 @@ def on_flagged(graph, graph_copy, node, max_weight, run_name):
    
    # Check the unedited copy graph for flagged neighbors
    for neighbor in graph_copy.edge[node]:
+
       # If a target graph node in both the copy and original aren't flagged
       if (not graph_copy.node[neighbor]['flagged'] and not graph.node[neighbor]['flagged']):
          
          # If the simulation will actually spread, then spread
-         if (will_spread(node, neighbor, graph, max_weight, talk_to_transmit, transmit_chance)):
-            graph.node[neighbor]['flagged'] = True
-			
-            # Increment the number of given_flags this round
-            given_flags += 1
-
-   return given_flags			
+         if (will_spread(node, neighbor, graph, max_weight, run_name)):
+            graph.node[neighbor]['flagged'] = True			
 ####################################################################################
 
 
@@ -164,10 +159,51 @@ Hook for changing the graph at the beginning of the round. Note that this takes 
       run_name: The name of the current run 
 '''
 ####################################################################################
-def before_round_start(graph, max_weight, run_name):
+def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name):
    #for edge in graph.edge:
       # do something
    return
+####################################################################################
+
+
+
+####################################################################################
+'''
+Hook for making changes to the graph after the before_round_start. Since the 
+before_round_start method adds edges, add_edge_list is passed along with the
+graph to easily add attributes to edges so that we don't need to worry about
+checking for which edges to add attributes to. If any overarching graph metric
+needs to be recalculated after changing graph edges, (i.e., betweenness, density)
+chamge them here.
+
+    Args:
+        graph: A networkx graph instance
+        add_edge_list: A list of edges we have added to the graph
+        run_name: A name for the simulation run
+'''
+####################################################################################
+def post_edge_modification(graph, add_edge_list, run_name):
+   return
+####################################################################################
+
+
+
+####################################################################################
+'''
+Hook for making changes to the graph after the after_round_start. Since the
+after_round_start method adds nodes, add_node_list is passed along with the
+graph to easily add attributes to nodes so that we don't need to worry about
+checking for which nodes to add attributes to. If any overarching graph metric
+needs to be recalculated after changing graph nodes (i.e. num nodes, etc.), 
+change them here.
+
+    Args:
+        graph: A networkx graph instance
+        add_node_list: A list of nodes we have added to the graph
+'''
+####################################################################################
+def post_node_modification(graph, add_node_list, run_name):
+   return # Add some code pls
 ####################################################################################
 
 
@@ -184,7 +220,7 @@ Hook for considering a node in the graph.
       run_name: The name of the current run
 '''
 ####################################################################################
-def after_round_end(graph, run_name):
+def after_round_end(graph, add_node_list, remove_node_list, run_name):
    given_flags = 0
    removed_flags = 0
    
@@ -251,7 +287,7 @@ def finished_hook(graph, current_round, max_allowed_rounds, run_name):
    dict = nx.get_node_attributes(graph, 'flagged')
    
    # Make sure we haven't hit the maximum allowed round
-   if (current_round > max_allowed_rounds):
+   if (helper.exceeded_round_limit(current_round, max_allowed_rounds)):
       return -1 # -1 means we ran out of allowed rounds
    
 
@@ -259,7 +295,7 @@ def finished_hook(graph, current_round, max_allowed_rounds, run_name):
    for val in dict:
       if(not dict[val]):
          #print '[' + val  + ']: ' + str(dict[val])
-         if (helper.num_flagged(graph) > 0):
+         if (helper.num_flagged(graph, 'flagged') > 0):
             return 0
          else:
             return -1

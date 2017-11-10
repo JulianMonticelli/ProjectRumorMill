@@ -29,7 +29,7 @@ import datetime
 # Simulation setup
 import simdefaults as defaults
 import simhelper as helper
-import simconfig as config
+import naked_config as config
 # Replace ^ that argument for different simulations
 
 
@@ -79,7 +79,6 @@ A single run of a simulation.
 '''
 ####################################################################################
 def run(graph, max_weight, max_allowed_rounds, run_name):
-
    round_num = 0
 
    last_timestamp = 0
@@ -168,4 +167,4 @@ def round(graph, max_weight, run_name):
 ###########################
 if __name__ == "__main__":
    main()
-#######i####################
+#######i####################	
