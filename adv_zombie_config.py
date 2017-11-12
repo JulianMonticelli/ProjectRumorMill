@@ -13,6 +13,8 @@ import simdefaults as defaults
 #######################
 # Simulation arguments#
 #######################
+DEBUG_STORY = True
+
 leader_node = 0
 
 heartbeat_interval = 30 # 30 second heartbeat interval
@@ -106,8 +108,7 @@ zombie_human_tag = left_tag_sep + zombie_human + right_tag_sep + post_tag
 zombie_zombie_tag = left_tag_sep + zombie_zombie + right_tag_sep + post_tag
 
 alert_tag = left_tag_sep + alert + right_tag_sep + post_tag
-
-DEBUG_STORY = False 
+ 
 
 #######################
 # Global data         #
