@@ -105,12 +105,16 @@ Given a percentage chance (0.0 - 1.0), roll for that chance.
 ####################################################################################
 def chance(percentage_chance):
    if (percentage_chance > 1):
-      print 'Percentage chance should never be MORE than 1. Even if you want 100% rolls. (PC: ' + str(percentage_chance) + ')'
-      tb.print_tb(None)
+      if (defaults.debug_chance_warnings):
+         print 'Percentage chance has exceeded 100%. (PC: ' + str(percentage_chance) + ')'
+         if (defaults.debug_chance_warnings_traceback):
+            tb.print_tb(None)
       return True
    if (percentage_chance <= 0):
-      print 'Percentage chance being less than or equal to 0 will always result in a failure. (PC: ' + str(percentage_chance) + ')'
-      tb.print_tb(None)
+      if (defaults.debug_chance_warnings):
+         print 'Percentage chance being less than or equal to 0 will always result in a failure. (PC: ' + str(percentage_chance) + ')'
+         if (defaults.debug_chance_warnings_traceback):
+            tb.print_tb(None)
       return False
    if (rand.random() <= percentage_chance):
       return True
