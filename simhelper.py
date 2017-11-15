@@ -725,17 +725,6 @@ def add_edge_to_list(edge_list, u, v, undirected=True):
 
 ####################################################################################
 '''
-Helper template.
-    Args:
-        arg1: Description
-'''
-####################################################################################
-####################################################################################
-
-
-
-####################################################################################
-'''
 Takes a list and appends a node to the list.
     Args:
         node_list: A list that holds nodes
@@ -745,4 +734,133 @@ Takes a list and appends a node to the list.
 def add_node_to_list(node_list, node):
    if (node not in node_list):
       node_list.append(node)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns the dictionary key with the maximum value.
+    Args:
+        _dict: A dictionary instance.
+
+    Returns:
+        The maximum valued key in a dictionary.
+'''
+####################################################################################
+def get_max_in_dict(_dict):
+   max_node = None
+   max_node_value = float('-inf')   
+
+   for node in _dict:
+      if (_dict[node] > max_node_value):
+         max_node = node
+         max_node_value = _dict[node]
+
+   return max_node
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns the dictionary key with the maximum value.
+    Args:
+        _dict: A dictionary instance.
+
+    Returns:
+        The maximum valued key in a dictionary.
+'''
+####################################################################################
+def get_min_in_dict(_dict):
+   min_node = None
+   min_node_value = float('inf')
+
+   for node in _dict:
+      if (_dict[node] < min_node_value):
+         min_node = node
+         min_node_value = _dict[node]
+
+   return min_node
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns a dictionary of all nodes in a graph and their betweenness centrality.
+    Args:
+        graph: A networkx graph instance
+
+    Returns:
+        A dictionary of nodes and their betweenness centrality
+'''
+####################################################################################
+def betweenness_centrality(graph):
+    return nx.betweenness_centrality(graph)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns a sorted list from an unsorted dictionary.
+    Args:
+        _dict: A dictionary which we expect to sort.
+
+    Returns:
+        A sorted list
+'''
+####################################################################################
+def get_max_betweenness_node(graph):
+   _dict = betweenness_centrality(graph)
+
+   max_node = get_max_in_dict(_dict)
+
+   return max_node
+####################################################################################
+
+
+
+####################################################################################
+'''
+Takes an unsorted dictionary and returns a sorted list by dictionary.
+    Args:
+        _dict: A dictionary which we will sort
+
+    Returns:
+        A list sorted in ascending order of key, value pairs.
+'''
+####################################################################################
+def sort_dict_ascending(_dict):
+   from operator import itemgetter
+   return sorted(adict.iteritems(), key=itemgetter(1), reverse=False)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Takes an unsorted dictionary and returns a sorted list by dictionary.
+    Args:
+        _dict: A dictionary which we will sort
+
+    Returns:
+        A list sorted in ascending order of key, value pairs.
+'''
+####################################################################################
+def sort_dict_descending(_dict):
+   from operator import itemgetter
+   return sorted(_dict.iteritems(), key=itemgetter(1), reverse=True)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Helper template.
+    Args:
+        arg1: Description
+'''
+####################################################################################
 ####################################################################################

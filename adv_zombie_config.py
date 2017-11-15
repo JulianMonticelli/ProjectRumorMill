@@ -13,6 +13,7 @@ import simdefaults as defaults
 #######################
 # Simulation arguments#
 #######################
+IS_SIM_GAME = True
 DEBUG_STORY = True
 
 leader_node = 0
@@ -41,8 +42,8 @@ max_food_find = 3000
 min_water_find = 0
 max_water_find = 1000
 
-starvation_damage = 2
-dehydration_damage = 3
+starvation_damage = 1
+dehydration_damage = 1
 
 min_cannibalism_food_gain = 5000
 max_cannibalism_food_gain = 15000
@@ -51,6 +52,7 @@ max_cannibalism_food_gain = 15000
 min_cannibalism_water_gain = 0
 max_cannibalism_water_gain = 350
 
+# How much food and water are removed from human nodes per round
 food_per_round = 2000
 water_per_round = 400
 
@@ -88,7 +90,7 @@ body_parts_weak = ['toe', 'finger', 'thumb', 'ear', 'buttcheek']
 body_parts_medium = ['hand', 'foot', 'leg', 'arm', 'shoulder', 'knee']
 body_parts_severe = ['torso', 'head', 'neck', 'left eye', 'right eye', 'nose', 'groin']
 
-attacks_weak = ['poked', 'smacked', 'slapped', 'stubbed', 'scratched']
+attacks_weak = ['poked', 'smacked', 'slapped', 'stubbed', 'scratched', 'wet willied']
 attacks_medium = ['punched', 'elbowed', 'kicked', 'noogied']
 attacks_strong = ['bashed', 'karate chopped', 'Vulkan death gripped', 'roundhouse kicked', 'dropkicked', 'backfisted']
 
@@ -138,48 +140,80 @@ A logically sound place to put data processing is at the end of this method.
 '''
 ####################################################################################
 def simulation_driver():
-   global num_nodes
-   
-   # Read in a graph
-   graph = nx.read_graphml('custom_graphs/xsmall_zombie_adv.graphml')
-   helper.output_graph_information(graph)
-   num_nodes = helper.num_nodes(graph)
-   
-   # Start from every node in the graph
-   for n in graph.node:
-      sim_name = 'zsim_' + str(n)
-      graphcopy = copy.deepcopy(graph)
-      init(graphcopy, n, sim_name)
-      engine.simulate(graphcopy, num_runs, sim_name)
+   if (IS_SIM_GAME):
+      zsim_game_runner()
 
-   average_humans_left = 0
-   average_zombies_left = 0
+   else:
+      global num_nodes
+      # Read in a graph
+      graph = nx.read_graphml('custom_graphs/xsmall_zombie_adv.graphml')
+      helper.output_graph_information(graph)
+      num_nodes = helper.num_nodes(graph)
+   
+      # Start from every node in the graph
+      for n in graph.node:
+         sim_name = 'zsim_' + str(n)
+         graphcopy = copy.deepcopy(graph)
+         init(graphcopy, n, sim_name)
+         engine.simulate(graphcopy, num_runs, sim_name)
 
+      average_humans_left = 0
+      average_zombies_left = 0
+
+      if (humans_won > 0):
+         average_humans_left = (humans_left_total / (float(humans_won)))
+      if (zombies_won > 0):
+         average_zombies_left = (zombies_left_total / (float(zombies_won)))
+
+      print '\n' * 2
+      print '*' * defaults.asterisk_space_count
+      print 'Simulations complete.'
+      print '*' * defaults.asterisk_space_count + '\n' * 2
+      print 'Simulation runs where humans were desolated: ' + str(zombies_won)
+      print 'Simulation runs where humans prevailed: ' + str(humans_won)
+      print 'Simulation runs where nothing remained: ' + str(no_survivors)
+      print 'Simulation runs that failed (> max rounds): ' + str(num_failed)
+      print 'Total number of simulations runs:    ' + str(total_simulations)
+      print '\n'
+      print 'Zombie won statistics:'
+      print '\n'
+      print 'Minimum zombies left: ' + str(zombies_left_min)
+      print 'Average zombies left: ' + str(average_zombies_left)
+      print 'Maximum zombies left: ' + str(zombies_left_max)
+      print '\n\n'
+      print 'Humans won statistics:\n'
+      print 'Minimum humans left: ' + str(humans_left_min)
+      print 'Average humans left: ' + str(average_humans_left)
+      print 'Maximum humans left: ' + str(humans_left_max)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Runs a game where you can select a node to infect and watch the outcome.
+'''
+####################################################################################
+def zsim_game_runner():
+   print '*' * 35 + '\nDESTROY ALL HUMANS IF POSSIBLE\n' + '*' * 35
+   print 'The list of all nodes and their betweenness centrality: '
+   graph_game = nx.read_graphml('custom_graphs/small_zombie_adv.graphml')
+   betweenness_dict = helper.betweenness_centrality(graph_game)
+   print helper.sort_dict_descending(betweenness_dict)
+   node_selected = -1
+   while (node_selected not in graph_game.node):
+      node_selected = str(input('Choose a node to infect: '))
+      if (node_selected not in graph_game.node):
+         print 'Invalid node! Try again.'
+   sim_name = 'zs_game'
+   init(graph_game, node_selected, sim_name)
+   engine.simulate(graph_game, 1, sim_name)
    if (humans_won > 0):
-      average_humans_left = (humans_left_total / (float(humans_won)))
-   if (zombies_won > 0):
-      average_zombies_left = (zombies_left_total / (float(zombies_won)))
-
-   print '\n' * 2
-   print '*' * defaults.asterisk_space_count
-   print 'Simulations complete.'
-   print '*' * defaults.asterisk_space_count + '\n' * 2
-   print 'Simulation runs where humans were desolated: ' + str(zombies_won)
-   print 'Simulation runs where humans prevailed: ' + str(humans_won)
-   print 'Simulation runs where nothing remained: ' + str(no_survivors)
-   print 'Simulation runs that failed (> max rounds): ' + str(num_failed)
-   print 'Total number of simulations runs:    ' + str(total_simulations)
-   print '\n'
-   print 'Zombie won statistics:'
-   print '\n'
-   print 'Minimum zombies left: ' + str(zombies_left_min)
-   print 'Average zombies left: ' + str(average_zombies_left)
-   print 'Maximum zombies left: ' + str(zombies_left_max)
-   print '\n\n'
-   print 'Humans won statistics:\n'
-   print 'Minimum humans left: ' + str(humans_left_min)
-   print 'Average humans left: ' + str(average_humans_left)
-   print 'Maximum humans left: ' + str(humans_left_max)
+      print 'You failed to infect all of the humans. Boo.'
+   elif (zombies_won > 0):
+      print 'You have succeeded to infect all humans. Good job!'
+   else:
+      print 'All humans and zombies are dead. This means that starvation probably killed humans while they were in the process of killing all the zombies'
 ####################################################################################
 
 
@@ -395,7 +429,14 @@ def handle_leader_node(graph, leader, max_weight, run_name):
       if ( graph.node[neighbor]['infected'] and not is_dead(graph, neighbor) ):
          if ( helper.roll_weight(edge_weight, max_weight) ):
             damage = rand.randint(min_human_damage, max_human_damage)
-            # need to finish
+            print human_zombie_tag + 'A leader, ' + leader + ',',
+            damage_message(damage, neighbor)
+            '. ...what a hero.'
+            graph.node[neighbor]['health'] -= damage
+            if (is_dead(graph, neighbor)):
+               print human_zombie_tag + 'A leader has taken care of another zombie problem. What a nice guy.'
+
+            # TODO: Finish
 ####################################################################################
 
 
@@ -540,6 +581,7 @@ Hook for changing the graph at the beginning of the round. Note that this takes 
 '''
 ####################################################################################
 def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name):
+   leader_node = helper.get_max_betweenness_node(graph)
    for node in graph.node:
       for neighbor in nx.all_neighbors(graph, node):
          if helper.chance( chance_lose_edge ):
