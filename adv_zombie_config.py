@@ -199,7 +199,7 @@ def zsim_game_runner():
    print 'The list of all nodes and their betweenness centrality: '
    graph_game = nx.read_graphml('custom_graphs/small_zombie_adv.graphml')
    betweenness_dict = helper.betweenness_centrality(graph_game)
-   print helper.sort_dict_descending(betweenness_dict)
+   helper.print_iterable_linebreak(helper.sort_dict_descending(betweenness_dict))
    node_selected = -1
    while (node_selected not in graph_game.node):
       node_selected = str(input('Choose a node to infect: '))
@@ -420,7 +420,16 @@ def is_dead(graph, node):
 
 
 ####################################################################################
+'''
+Handle the leader node, or the node that has the max betweenness. This node will
+only be considered to run as a leader if the node is a human.
 
+    Args:
+        graph: A networkx graph instance
+        leader: A node that acts as the leader
+        max_weight: The maximum weight of the graph
+        run_name: The name of the current run
+'''
 ####################################################################################
 def handle_leader_node(graph, leader, max_weight, run_name):
    for neighbor in nx.all_neighbors(graph, leader):
@@ -431,14 +440,13 @@ def handle_leader_node(graph, leader, max_weight, run_name):
             damage = rand.randint(min_human_damage, max_human_damage)
             print human_zombie_tag + 'A leader, ' + leader + ',',
             damage_message(damage, neighbor)
-            '. ...what a hero.'
+            print '. ...what a hero.'
             graph.node[neighbor]['health'] -= damage
             if (is_dead(graph, neighbor)):
                print human_zombie_tag + 'A leader has taken care of another zombie problem. What a nice guy.'
 
             # TODO: Finish
 ####################################################################################
-
 
 
 
