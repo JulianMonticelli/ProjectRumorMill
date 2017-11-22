@@ -61,44 +61,44 @@ A logically sound place to put data processing is at the end of this method.
 '''
 ####################################################################################
 def simulation_driver():
-   # Read in a graph
-   graph = nx.read_graphml('simplemodel.graphml')
-   helper.output_graph_information(graph)
+    # Read in a graph
+    graph = nx.read_graphml('simplemodel.graphml')
+    helper.output_graph_information(graph)
 
-   # Start from every node in the graph
-   for n in graph.node:
-      graphcopy = copy.deepcopy(graph)
-      
-      # Create a simulation name
-      sim_name = 'sim_' + n
+    # Start from every node in the graph
+    for n in graph.node:
+        graphcopy = copy.deepcopy(graph)
+        
+        # Create a simulation name
+        sim_name = 'sim_' + n
 
-      init(graphcopy, n, sim_name)
-      
-      # Start simulation with the simulation name
-      engine.simulate(graphcopy, num_runs, sim_name)
-      
-      # Data collection per simulation should go here - any global variables should be recorded and reset
+        init(graphcopy, n, sim_name)
+        
+        # Start simulation with the simulation name
+        engine.simulate(graphcopy, num_runs, sim_name)
+        
+        # Data collection per simulation should go here - any global variables should be recorded and reset
 
-   percent_finished = helper.percent(total_successes, total_simulations)
-   percent_flagged = helper.total_percent_flagged(graph, num_flagged, total_simulations)
-   percent_flagged_successes = helper.total_percent_flagged(graph, num_flagged_successes, total_successes)
-   average_rounds = 0
-   if (total_successes > 0):
-      average_rounds = total_rounds / float(total_successes)
-   print '\n' * 2
-   print '*' * defaults.asterisk_space_count
-   print 'Simulations complete.'
-   print '*' * defaults.asterisk_space_count
-   print 'Total successful simulations (spread across whole graph): ' + str(total_successes)
-   print 'Total failed simulations (could not spread across graph): ' + str(num_fails)
-   print 'Total number of simulations (complete and incomplete):    ' + str(total_simulations)
-   print '\n' + '*' * defaults.asterisk_space_count + '\n'
-   print 'Min rounds until success: ' + str(min_rounds_success)
-   print 'Max rounds until success: ' + str(max_rounds_success)
-   print 'Average rounds until completion (across ' + str(total_successes) +' simulation runs): ' + str(average_rounds)
-   print 'Average graph spread rate (across ' +  str(total_successes) + ' simulation runs): ' + str(percent_flagged_successes) + '%'
-   print 'Average graph completion rate (across all graphs): ' + str(percent_finished) + '%'
-   print 'Average graph spread rate (across all graphs): ' + str(percent_flagged) + '%'
+    percent_finished = helper.percent(total_successes, total_simulations)
+    percent_flagged = helper.total_percent_flagged(graph, num_flagged, total_simulations)
+    percent_flagged_successes = helper.total_percent_flagged(graph, num_flagged_successes, total_successes)
+    average_rounds = 0
+    if (total_successes > 0):
+        average_rounds = total_rounds / float(total_successes)
+    print '\n' * 2
+    print '*' * defaults.asterisk_space_count
+    print 'Simulations complete.'
+    print '*' * defaults.asterisk_space_count
+    print 'Total successful simulations (spread across whole graph): ' + str(total_successes)
+    print 'Total failed simulations (could not spread across graph): ' + str(num_fails)
+    print 'Total number of simulations (complete and incomplete):     ' + str(total_simulations)
+    print '\n' + '*' * defaults.asterisk_space_count + '\n'
+    print 'Min rounds until success: ' + str(min_rounds_success)
+    print 'Max rounds until success: ' + str(max_rounds_success)
+    print 'Average rounds until completion (across ' + str(total_successes) +' simulation runs): ' + str(average_rounds)
+    print 'Average graph spread rate (across ' +  str(total_successes) + ' simulation runs): ' + str(percent_flagged_successes) + '%'
+    print 'Average graph completion rate (across all graphs): ' + str(percent_finished) + '%'
+    print 'Average graph spread rate (across all graphs): ' + str(percent_flagged) + '%'
 ####################################################################################
 
 
@@ -115,22 +115,22 @@ Hook for considering a node in the graph.
 '''
 ####################################################################################
 def on_node(graph, graph_copy, node, max_weight, run_name):
-   # Define relevant globals
-   global num_forgot
-   global num_given
-   
+    # Define relevant globals
+    global num_forgot
+    global num_given
+    
 
-   if(will_forget(graph, graph_copy, node, 'flagged', run_name, spontaneous_forget, spontaneous_forget_chance)):
-      num_forgot += 1 # Update amount of forgotten flags
-      return
-      # IMPORTANT: So that directed graphs work as well as undirected graphs, consider flagged only
-      # Check graph_copy for the flag - if we check graph, we will have leaking
-   if (graph_copy.node[node]['flagged']):
-      num_given += on_flagged(graph, graph_copy, node, max_weight, run_name)
+    if(will_forget(graph, graph_copy, node, 'flagged', run_name, spontaneous_forget, spontaneous_forget_chance)):
+        num_forgot += 1 # Update amount of forgotten flags
+        return
+        # IMPORTANT: So that directed graphs work as well as undirected graphs, consider flagged only
+        # Check graph_copy for the flag - if we check graph, we will have leaking
+    if (graph_copy.node[node]['flagged']):
+        num_given += on_flagged(graph, graph_copy, node, max_weight, run_name)
 
-      # If the node does not know, and we can spontaneously come into knowing
-   else:
-      num_given += on_not_flagged(graph, graph_copy, node, run_name, spontaneous_acquisition, spontaneous_acquisition_chance)
+        # If the node does not know, and we can spontaneously come into knowing
+    else:
+        num_given += on_not_flagged(graph, graph_copy, node, run_name, spontaneous_acquisition, spontaneous_acquisition_chance)
 ####################################################################################
 
 
@@ -153,24 +153,24 @@ Runs operations on a flagged node to determine if it will transmit information.
 '''
 ####################################################################################
 def on_flagged(graph, graph_copy, node, max_weight, run_name,
-               talk_to_transmit=talk_to_transmit,
-               transmit_chance=transmit_chance):
-   given_flags = 0
+                    talk_to_transmit=talk_to_transmit,
+                    transmit_chance=transmit_chance):
+    given_flags = 0
 
-   # Check the unedited copy graph for flagged neighbors
-   for neighbor in graph_copy.edge[node]:
-      
-      # If a target graph node in both the copy and original aren't flagged
-      if (not graph_copy.node[neighbor]['flagged'] and not graph.node[neighbor]['flagged']):
+    # Check the unedited copy graph for flagged neighbors
+    for neighbor in graph_copy.edge[node]:
+        
+        # If a target graph node in both the copy and original aren't flagged
+        if (not graph_copy.node[neighbor]['flagged'] and not graph.node[neighbor]['flagged']):
 
-         # If the simulation will actually spread, then spread
-         if (will_spread(node, neighbor, graph, max_weight, run_name, talk_to_transmit, transmit_chance)):
-            graph.node[neighbor]['flagged'] = True
+            # If the simulation will actually spread, then spread
+            if (will_spread(node, neighbor, graph, max_weight, run_name, talk_to_transmit, transmit_chance)):
+                graph.node[neighbor]['flagged'] = True
 
-            # Increment the number of given_flags this round
-            given_flags += 1
+                # Increment the number of given_flags this round
+                given_flags += 1
 
-   return given_flags
+    return given_flags
 ####################################################################################
 
 
@@ -192,11 +192,11 @@ Currently will only check whether or not spontaneous acquisition will occur.
 '''
 ####################################################################################
 def on_not_flagged(graph, graph_copy, node, run_name,
-                   spontaneous_acquisition=spontaneous_acquisition,
-                   spontaneous_acquisition_chance=spontaneous_acquisition_chance):
-   if (will_spontaneously_acquire(graph, graph_copy, node, 'flagged', True, spontaneous_acquisition)):
-      return 1 # We have made a positive difference in this graph by one
-   return 0 # No change
+                         spontaneous_acquisition=spontaneous_acquisition,
+                         spontaneous_acquisition_chance=spontaneous_acquisition_chance):
+    if (will_spontaneously_acquire(graph, graph_copy, node, 'flagged', True, spontaneous_acquisition)):
+        return 1 # We have made a positive difference in this graph by one
+    return 0 # No change
 ####################################################################################
 
 
@@ -220,14 +220,14 @@ Performs a roll for a node that is in the know to determine whether or not an ag
 '''
 ####################################################################################
 def will_forget(graph, graph_copy, node, attr, run_name, spontaneous_forget, spontaneous_forget_chance, forget_value=False):
-   # Make sure we don't forget what we don't know!
-   if (spontaneous_forget and graph.node[node][attr] != forget_value):
-      if (helper.chance(spontaneous_forget_chance)):
-         # Wipe flag from both graph and graph_copy
-         graph.node[node][attr] = forget_value
-         graph_copy[node][attr] = forget_value
-         return True
-   return False
+    # Make sure we don't forget what we don't know!
+    if (spontaneous_forget and graph.node[node][attr] != forget_value):
+        if (helper.chance(spontaneous_forget_chance)):
+            # Wipe flag from both graph and graph_copy
+            graph.node[node][attr] = forget_value
+            graph_copy[node][attr] = forget_value
+            return True
+    return False
  # Skip this node because it no longer has a flag
 ####################################################################################
 
@@ -256,13 +256,13 @@ def will_spontaneously_acquire(
                                spontaneous_acquisition=spontaneous_acquisition,
                                spontaneous_acquisition_chance=spontaneous_acquisition_chance
                               ):
-   if (spontaneous_acquisition and graph.node[node][attr] != acquisition_value):
-      if (helper.chance(spontaneous_acquisition_chance)):
-         # Apply flag to both graph and graph_copy
-         graph.node[node][attr] = acquisition_value
-         graph_copy.node[node][attr] = acquisition_value
-         return True
-   return False
+    if (spontaneous_acquisition and graph.node[node][attr] != acquisition_value):
+        if (helper.chance(spontaneous_acquisition_chance)):
+            # Apply flag to both graph and graph_copy
+            graph.node[node][attr] = acquisition_value
+            graph_copy.node[node][attr] = acquisition_value
+            return True
+    return False
 ####################################################################################
 
 
@@ -289,20 +289,20 @@ def will_spread(
                 talk_to_transmit=talk_to_transmit,
 				transmit_chance=transmit_chance
                ):
-   # TODO: Add more dynamic way to spread flags from nodes to nodes
+    # TODO: Add more dynamic way to spread flags from nodes to nodes
 
-   # Get current weight
-   curr_weight = graph.edge[source][dest]['weight']
+    # Get current weight
+    curr_weight = graph.edge[source][dest]['weight']
 
-   # Will they engage at all? This consults the weight of their edge
-   if ( helper.roll_weight (curr_weight , max_weight ) ):
-      if (talk_to_transmit):
-          return True
-      else:
-         # This is the chance that their engagement will exchange information
-         if (helper.chance(transmit_chance)):
-            return True
-   return False
+    # Will they engage at all? This consults the weight of their edge
+    if ( helper.roll_weight (curr_weight , max_weight ) ):
+        if (talk_to_transmit):
+             return True
+        else:
+            # This is the chance that their engagement will exchange information
+            if (helper.chance(transmit_chance)):
+                return True
+    return False
 ####################################################################################
 
 
@@ -319,9 +319,9 @@ Hook for changing the graph at the beginning of the round. Note that this takes 
 '''
 ####################################################################################
 def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name):
-   #for edge in graph.edge:
-      # do something
-   return
+    #for edge in graph.edge:
+        # do something
+    return
 ####################################################################################
 
 
@@ -342,7 +342,7 @@ chamge them here.
 '''
 ####################################################################################
 def post_edge_modification(graph, add_edge_list, run_name):
-   return
+    return
 ####################################################################################
 
 
@@ -360,13 +360,13 @@ Hook for considering a node in the graph.
 '''
 ####################################################################################
 def after_round_end(graph, add_node_list, remove_node_list, run_name):
-   given_flags = 0
-   removed_flags = 0
+    given_flags = 0
+    removed_flags = 0
 
-   #for edge in graph.edge:
-      # do something
+    #for edge in graph.edge:
+        # do something
 
-   return given_flags, removed_flags
+    return given_flags, removed_flags
 ####################################################################################
 
 
@@ -386,7 +386,7 @@ change them here.
 '''
 ####################################################################################
 def post_node_modification(graph, add_node_list, run_name):
-   return # Add some code pls
+    return # Add some code pls
 ####################################################################################
 
 
@@ -403,26 +403,26 @@ Also initializes uninitialized weights on graphs as 1.
 '''
 ####################################################################################
 def init(graph, node, sim_name):
-   # Let the user know what node is the starting node.
-   if (defaults.LOGGING or defaults.DEBUG or defaults.defaults.DEBUG_SEVERE):
-      print '\n' + '*' * defaults.asterisk_space_count + '\nInitializing graph - \'' + str(node) + '\' is in the know.'
+    # Let the user know what node is the starting node.
+    if (defaults.LOGGING or defaults.DEBUG or defaults.defaults.DEBUG_SEVERE):
+        print '\n' + '*' * defaults.asterisk_space_count + '\nInitializing graph - \'' + str(node) + '\' is in the know.'
 
-   # Give all nodes a false flag
-   helper.create_node_attribute(graph, 'flagged', False)
+    # Give all nodes a false flag
+    helper.create_node_attribute(graph, 'flagged', False)
 
-   # Save edge weight, as we are going to wipe graph
-   dict = nx.get_edge_attributes(graph, 'weight')
+    # Save edge weight, as we are going to wipe graph
+    dict = nx.get_edge_attributes(graph, 'weight')
 
-   # Write 1 weight to all edges
-   nx.set_edge_attributes(graph, 'weight', 1)
+    # Write 1 weight to all edges
+    nx.set_edge_attributes(graph, 'weight', 1)
 
-   # Restore initial edges
-   for n1,n2 in dict:
-      graph.edge[n1][n2]['weight'] = dict[n1,n2]
+    # Restore initial edges
+    for n1,n2 in dict:
+        graph.edge[n1][n2]['weight'] = dict[n1,n2]
 
 
-   # Set an specific node
-   graph.node[node]['flagged'] = True
+    # Set an specific node
+    graph.node[node]['flagged'] = True
 ####################################################################################
 
 
@@ -448,38 +448,38 @@ Determines whether or not a graph is finished.
 def finished_hook(graph, current_round, max_allowed_rounds, run_name,
                   spontaneous_acquisition = spontaneous_acquisition,
                   spontaneous_acquisition_chance = spontaneous_acquisition_chance):
-   # Get all attributes and store them in a dictionary
-   dict = nx.get_node_attributes(graph, 'flagged')
+    # Get all attributes and store them in a dictionary
+    dict = nx.get_node_attributes(graph, 'flagged')
 
-   helper.num_flagged(graph, 'flagged')
+    helper.num_flagged(graph, 'flagged')
 
-   # Make sure we haven't hit the maximum allowed round
-   if (helper.exceeded_round_limit(current_round, max_allowed_rounds)):
-      return -1 # -1 means we failed
+    # Make sure we haven't hit the maximum allowed round
+    if (helper.exceeded_round_limit(current_round, max_allowed_rounds)):
+        return -1 # -1 means we failed
 
 
-   # A subgraph completion check should only be done if we don't spontaneously acquire information
-   # and if finished is meant to include max subgraph spread
-   if (
-       (spontaneous_acquisition == False or spontaneous_acquisition_chance <= 0)
-       and
-       finished_includes_max_subgraph_spread
+    # A subgraph completion check should only be done if we don't spontaneously acquire information
+    # and if finished is meant to include max subgraph spread
+    if (
+         (spontaneous_acquisition == False or spontaneous_acquisition_chance <= 0)
+         and
+         finished_includes_max_subgraph_spread
 	  ):
-      return helper.check_subgraph_spread(graph)
+        return helper.check_subgraph_spread(graph)
 	  
-   # If the above check is not true, check how many nodes are flagged.
-   # If all nodes are flagged, the information has successfully passed itself along.
-   # Otherwise, make sure we haven't lost all of the information before trying to spread it further.
-   else:
-      # Iterate the nodes and see if they're flagged or not
-      for val in dict:
-         if(not dict[val]):
-            #print '[' + val  + ']: ' + str(dict[val])
-            if (helper.num_flagged(graph, 'flagged') > 0):
-               return 0
-            else:
-               return -1
-      return 1 # 1 is a successful graph
+    # If the above check is not true, check how many nodes are flagged.
+    # If all nodes are flagged, the information has successfully passed itself along.
+    # Otherwise, make sure we haven't lost all of the information before trying to spread it further.
+    else:
+        # Iterate the nodes and see if they're flagged or not
+        for val in dict:
+            if(not dict[val]):
+                #print '[' + val  + ']: ' + str(dict[val])
+                if (helper.num_flagged(graph, 'flagged') > 0):
+                    return 0
+                else:
+                    return -1
+        return 1 # 1 is a successful graph
 ####################################################################################
 
 
@@ -495,40 +495,39 @@ Hook for finishing the simulation run on the current graph.
 '''
 ####################################################################################
 def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
-   global num_given
-   global num_forgot
-   global total_simulations
-   global total_successes
-   global num_fails
-   global total_rounds
-   global num_flagged
-   global num_flagged_successes
-   global max_flagged
-   global min_rounds_success
-   global max_rounds_success
-   
-   total_simulations += 1
-   flagged_nodes = helper.num_flagged(graph, 'flagged')
-   num_flagged += flagged_nodes
-   
-   if (finish_code < 0):
-      print run_name + '> failed! ' + str(helper.num_flagged(graph, 'flagged')) + ' flagged out of ' + str(helper.num_nodes(graph))
-      num_given = 0
-      num_forgot = 0
-      num_fails += 1
-      return
-   else:
-      print run_name + '> succeeded! ' + str(helper.num_flagged(graph, 'flagged')) + ' flagged out of ' + str(helper.num_nodes(graph)) 
-      total_rounds 
-      num_given = 0
-      num_forgot = 0
-      num_flagged_successes += flagged_nodes
-      total_rounds += round_num
-      total_successes += 1
-      min_rounds_success = min(min_rounds_success, round_num)
-      max_rounds_success = max(max_rounds_success, round_num)
-   # Add simulation-based variables to global sums
-   
+    global num_given
+    global num_forgot
+    global total_simulations
+    global total_successes
+    global num_fails
+    global total_rounds
+    global num_flagged
+    global num_flagged_successes
+    global max_flagged
+    global min_rounds_success
+    global max_rounds_success
+    
+    total_simulations += 1
+    flagged_nodes = helper.num_flagged(graph, 'flagged')
+    num_flagged += flagged_nodes
+    
+    if (finish_code < 0):
+        print run_name + '> failed! ' + str(helper.num_flagged(graph, 'flagged')) + ' flagged out of ' + str(helper.num_nodes(graph))
+        num_given = 0
+        num_forgot = 0
+        num_fails += 1
+        return
+    else:
+        print run_name + '> succeeded! ' + str(helper.num_flagged(graph, 'flagged')) + ' flagged out of ' + str(helper.num_nodes(graph)) 
+        total_rounds 
+        num_given = 0
+        num_forgot = 0
+        num_flagged_successes += flagged_nodes
+        total_rounds += round_num
+        total_successes += 1
+        min_rounds_success = min(min_rounds_success, round_num)
+        max_rounds_success = max(max_rounds_success, round_num)
+    # Add simulation-based variables to global sums
 ####################################################################################
 
 
@@ -544,6 +543,6 @@ simulation is still running and NOT stuck somewhere in an infinite loop.
 '''
 ####################################################################################
 def heartbeat(current_time, last_heartbeat, run_name):
-   print '[' + str(current_time) + ']: ' + str(run_name) + ' still alive. Last update was ' \
-         + str(last_heartbeat) + ' seconds ago.'
+    print '[' + str(current_time) + ']: ' + str(run_name) + ' still alive. Last update was ' \
+            + str(last_heartbeat) + ' seconds ago.'
 ####################################################################################
