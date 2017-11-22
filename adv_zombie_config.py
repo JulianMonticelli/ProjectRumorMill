@@ -37,10 +37,10 @@ hunger_threshold_dire = 10000
 find_food_chance = .01
 
 min_food_find = 0
-max_food_find = 3000
+max_food_find = 6000
 
 min_water_find = 0
-max_water_find = 1000
+max_water_find = 2000
 
 starvation_damage = 1
 dehydration_damage = 1
@@ -199,7 +199,7 @@ def zsim_game_runner():
    print 'The list of all nodes and their betweenness centrality: '
    graph_game = nx.read_graphml('custom_graphs/small_zombie_adv.graphml')
    betweenness_dict = helper.betweenness_centrality(graph_game)
-   print helper.sort_dict_descending(betweenness_dict)
+   helper.print_iterable_linebreak(helper.sort_dict_descending(betweenness_dict))
    node_selected = -1
    while (node_selected not in graph_game.node):
       node_selected = str(input('Choose a node to infect: '))
@@ -340,7 +340,9 @@ def on_not_flagged(graph, graph_copy, node, max_weight, run_name):
             # If ever our currently considered node is dead, return
             if (is_dead(graph, node)):
                return
-   else: 
+
+   elif node == leader_node:
+      print 'detected leader node!!!' 
       handle_leader_node(graph, node)
 
       # Do something with the neighbor? Could help or harm
