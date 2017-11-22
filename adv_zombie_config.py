@@ -788,7 +788,6 @@ def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
    global zombies_left_total, zombies_left_min, zombies_left_max
    run_tag = left_tag_sep + run_name + right_tag_sep + post_tag
 
-
    total_simulations += 1
    if (finish_code < 0):
       print run_tag + 'Graph ran until completion. Failed to infect all humans, zombies not dead.'
