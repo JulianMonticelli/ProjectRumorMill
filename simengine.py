@@ -39,8 +39,8 @@ import adv_zombie_config as config
 # Program entry point. Setup, etc.                                                 #
 ####################################################################################
 def main():
-   # Config is responsible for the simulation_driver
-   config.simulation_driver()
+    # Config is responsible for the simulation_driver
+    config.simulation_driver()
 
 ####################################################################################
 
@@ -56,13 +56,13 @@ Simulation function - to be changed and altered. Highly volatile.
 '''
 ####################################################################################
 def simulate(graph, num_simulations, sim_name):
-   max_weight = helper.max_weight(graph)
-   current_run = 1
-   while (current_run <= num_simulations):
-      graph_instance = copy.deepcopy(graph)
-      run_name = sim_name + '_r' + str(current_run)
-      run(graph_instance, max_weight, config.maximum_allowed_simulation_rounds, run_name)
-      current_run += 1
+    max_weight = helper.max_weight(graph)
+    current_run = 1
+    while (current_run <= num_simulations):
+        graph_instance = copy.deepcopy(graph)
+        run_name = sim_name + '_r' + str(current_run)
+        run(graph_instance, max_weight, config.maximum_allowed_simulation_rounds, run_name)
+        current_run += 1
 ####################################################################################
 
 
@@ -79,38 +79,38 @@ A single run of a simulation.
 '''
 ####################################################################################
 def run(graph, max_weight, max_allowed_rounds, run_name):
-   round_num = 0
+    round_num = 0
 
-   last_timestamp = 0
-   start_timestamp = 0
-   
-   start_timestamp = helper.date_time()
-   last_timestamp = start_timestamp
+    last_timestamp = 0
+    start_timestamp = 0
+    
+    start_timestamp = helper.date_time()
+    last_timestamp = start_timestamp
 
-   print '[' + str(last_timestamp) + ']' ': Beginning simulation run ' + str(run_name) + '...'
-   
-   while(not config.finished_hook(graph, round_num, max_allowed_rounds, run_name)):
-      # Increment round number
-      round_num += 1
+    print '[' + str(last_timestamp) + ']' ': Beginning simulation run ' + str(run_name) + '...'
+    
+    while(not config.finished_hook(graph, round_num, max_allowed_rounds, run_name)):
+        # Increment round number
+        round_num += 1
 
 	  # Get time difference determine if a heartbeat is necessary
-      now = helper.date_time()
-      last_heartbeat = helper.time_diff(now, last_timestamp)
-      if (last_heartbeat >= config.heartbeat_interval):
-         last_timestamp = now
-         config.heartbeat(now, last_heartbeat, run_name)
-      
+        now = helper.date_time()
+        last_heartbeat = helper.time_diff(now, last_timestamp)
+        if (last_heartbeat >= config.heartbeat_interval):
+            last_timestamp = now
+            config.heartbeat(now, last_heartbeat, run_name)
+        
 	  # Run the round
-      round(graph, max_weight, run_name)
+        round(graph, max_weight, run_name)
 
-   # Check why we quit the simulation
-   finish_code = config.finished_hook(graph, round_num, max_allowed_rounds, run_name)
-   
-   # Calculate the amount of time that the run took
-   total_time_seconds = helper.time_diff(start_timestamp, helper.date_time())
-   
-   # Pass along relevant information to the on_finished hook
-   config.on_finished(graph, finish_code, round_num, run_name, total_time_seconds)
+    # Check why we quit the simulation
+    finish_code = config.finished_hook(graph, round_num, max_allowed_rounds, run_name)
+    
+    # Calculate the amount of time that the run took
+    total_time_seconds = helper.time_diff(start_timestamp, helper.date_time())
+    
+    # Pass along relevant information to the on_finished hook
+    config.on_finished(graph, finish_code, round_num, run_name, total_time_seconds)
 ####################################################################################
 
 
@@ -125,39 +125,36 @@ A step in the simulation.
 '''
 ####################################################################################
 def round(graph, max_weight, run_name):
+    # Declare empty list for graph changes
+    add_node_list = []
+    remove_node_list = []
+    add_edge_list = []
+    remove_edge_list = []
 
-   # Declare empty list for graph changes
-   add_node_list = []
-   remove_node_list = []
-   add_edge_list = []
-   remove_edge_list = []
+    # Deal with potential before-round graph changes (edge addition/removals)
+    config.before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name)
 
-   # Deal with potential before-round graph changes (edge addition/removals)
-   config.before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name)
+    # Perform graph changes, if there are any
+    helper.modify_graph_edges(graph, add_edge_list, remove_edge_list)
 
-   # Perform graph changes, if there are any
-   helper.modify_graph_edges(graph, add_edge_list, remove_edge_list)
+    # Fix edge attributes as config deems necessary
+    config.post_edge_modification(graph, add_edge_list, run_name)
 
-   # Fix edge attributes as config deems necessary
-   config.post_edge_modification(graph, add_edge_list, run_name)
+    # Deep copy graph after pre-round graph changes
+    graph_copy = helper.copy_graph(graph)
 
-   # Deep copy graph after pre-round graph changes
-   graph_copy = helper.copy_graph(graph)
+    for node in nx.nodes(graph):
+        config.on_node(graph, graph_copy, node, max_weight, run_name)
 
-   for node in nx.nodes(graph):
-      config.on_node(graph, graph_copy, node, max_weight, run_name)
+    # Deal with potential post-round graph changes (node addition/removals)
+    config.after_round_end(graph, add_node_list, remove_node_list, run_name)
 
-   # Deal with potential post-round graph changes (node addition/removals)
-   config.after_round_end(graph, add_node_list, remove_node_list, run_name)
+    # Fix node attributes as config deems necessary
+    # Also, any reconsiderations 
+    config.post_node_modification(graph, add_node_list, run_name)
 
-   # Fix node attributes as config deems necessary
-   # Also, any reconsiderations 
-   config.post_node_modification(graph, add_node_list, run_name)
-
-   # Perform graph changes, if there are any
-   helper.modify_graph_nodes(graph, add_node_list, remove_node_list)
-
-
+    # Perform graph changes, if there are any
+    helper.modify_graph_nodes(graph, add_node_list, remove_node_list)
 ####################################################################################
 
 
@@ -166,5 +163,5 @@ def round(graph, max_weight, run_name):
 # END OF FUNCTIONS.       #
 ###########################
 if __name__ == "__main__":
-   main()
+    main()
 #######i####################	

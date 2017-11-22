@@ -86,8 +86,8 @@ max_human_damage = 50
 chance_lose_edge = .1
 chance_gain_edge = .1
 
-body_parts_weak = ['toe', 'finger', 'thumb', 'ear', 'buttcheek']
-body_parts_medium = ['hand', 'foot', 'leg', 'arm', 'shoulder', 'knee']
+body_parts_weak = ['toe', 'finger', 'thumb', 'ear', 'buttcheek', 'elbow',]
+body_parts_medium = ['hand', 'foot', 'leg', 'arm', 'shoulder', 'knee', 'shin', 'forearm']
 body_parts_severe = ['torso', 'head', 'neck', 'left eye', 'right eye', 'nose', 'groin']
 
 attacks_weak = ['poked', 'smacked', 'slapped', 'stubbed', 'scratched', 'wet willied']
@@ -425,6 +425,7 @@ def is_dead(graph, node):
 def handle_leader_node(graph, leader, max_weight, run_name):
    for neighbor in nx.all_neighbors(graph, leader):
       edge_weight = graph.edge[leader][neighbor]['weight']
+	  
       # If zombie neighbor, try to attack
       if ( graph.node[neighbor]['infected'] and not is_dead(graph, neighbor) ):
          if ( helper.roll_weight(edge_weight, max_weight) ):
@@ -433,6 +434,8 @@ def handle_leader_node(graph, leader, max_weight, run_name):
             damage_message(damage, neighbor)
             '. ...what a hero.'
             graph.node[neighbor]['health'] -= damage
+            
+            # If the leader node has killed a zombie
             if (is_dead(graph, neighbor)):
                print human_zombie_tag + 'A leader has taken care of another zombie problem. What a nice guy.'
 

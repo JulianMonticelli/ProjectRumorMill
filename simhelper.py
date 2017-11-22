@@ -13,12 +13,12 @@ import simdefaults as defaults
 # Returns an integer value with the number of flagged nodes given an attribute     #
 ####################################################################################
 def num_flagged(graph, attr):
-   num_flagged = 0
-   nodes = nx.get_node_attributes(graph, attr)
-   for val in nodes:
-      if (nodes[val]):
-         num_flagged += 1
-   return num_flagged
+    num_flagged = 0
+    nodes = nx.get_node_attributes(graph, attr)
+    for val in nodes:
+        if (nodes[val]):
+            num_flagged += 1
+    return num_flagged
 ####################################################################################
 
 
@@ -29,7 +29,7 @@ Converts a numerator and a denominator into a percentage.
 '''
 ####################################################################################
 def percent(numerator, denominator):
-   return 100 * numerator / float(denominator)
+    return 100 * numerator / float(denominator)
 ####################################################################################
 
 
@@ -48,7 +48,7 @@ nodes that were flagged.
 '''
 ####################################################################################
 def percent_flagged(graph, num_flagged):
-   return 100 * num_flagged / float(len(graph.node))
+    return 100 * num_flagged / float(len(graph.node))
 ####################################################################################
 
 
@@ -67,7 +67,7 @@ and the total number of simulations.
 '''
 ####################################################################################
 def total_percent_flagged(graph, num_flagged, num_simulations):
-   return 100 * num_flagged / float((len(graph.node) * num_simulations))
+    return 100 * num_flagged / float((len(graph.node) * num_simulations))
 ####################################################################################
 
 
@@ -83,11 +83,11 @@ Pass in a graph, get the integer maximum weight of all edges
 '''
 ####################################################################################
 def max_weight(graph):
-   max_weight = float('-inf')
-   dict = nx.get_edge_attributes(graph, 'weight')
-   for val in dict:
-      max_weight = max(max_weight, dict[val])
-   return max_weight
+    max_weight = float('-inf')
+    dict = nx.get_edge_attributes(graph, 'weight')
+    for val in dict:
+        max_weight = max(max_weight, dict[val])
+    return max_weight
 ####################################################################################
 
 
@@ -104,20 +104,20 @@ Given a percentage chance (0.0 - 1.0), roll for that chance.
 '''
 ####################################################################################
 def chance(percentage_chance):
-   if (percentage_chance > 1):
-      if (defaults.debug_chance_warnings):
-         print 'Percentage chance has exceeded 100%. (PC: ' + str(percentage_chance) + ')'
-         if (defaults.debug_chance_warnings_traceback):
-            tb.print_tb(None)
-      return True
-   if (percentage_chance <= 0):
-      if (defaults.debug_chance_warnings):
-         print 'Percentage chance being less than or equal to 0 will always result in a failure. (PC: ' + str(percentage_chance) + ')'
-         if (defaults.debug_chance_warnings_traceback):
-            tb.print_tb(None)
-      return False
-   if (rand.random() <= percentage_chance):
-      return True
+    if (percentage_chance > 1):
+        if (defaults.debug_chance_warnings):
+            print 'Percentage chance has exceeded 100%. (PC: ' + str(percentage_chance) + ')'
+            if (defaults.debug_chance_warnings_traceback):
+                tb.print_tb(None)
+        return True
+    if (percentage_chance <= 0):
+        if (defaults.debug_chance_warnings):
+            print 'Percentage chance being less than or equal to 0 will always result in a failure. (PC: ' + str(percentage_chance) + ')'
+            if (defaults.debug_chance_warnings_traceback):
+                tb.print_tb(None)
+        return False
+    if (rand.random() <= percentage_chance):
+        return True
 ####################################################################################
 
 
@@ -130,16 +130,16 @@ Dumps information about the given graph.
 '''
 ####################################################################################
 def output_graph_information(graph):
-   print '*' * defaults.asterisk_space_count
-   print 'Graph has ' + str(graph.number_of_nodes()) + ' node(s) and ' + str(graph.number_of_edges()) + ' edge(s).'
-   print 'Density: ' + str(nx.density(graph))
-   print 'Max weight of edges: ' + str(max_weight(graph))
-   if nx.is_connected(graph):
-      print 'Graph is completely connected.'
-   else:
-      print 'Graph is disjoint.'
-   #print 'Betweenness centrality: ' + str(nx.betweenness_centrality(graph)) # It can be done!
-   print '*' * defaults.asterisk_space_count
+    print '*' * defaults.asterisk_space_count
+    print 'Graph has ' + str(graph.number_of_nodes()) + ' node(s) and ' + str(graph.number_of_edges()) + ' edge(s).'
+    print 'Density: ' + str(nx.density(graph))
+    print 'Max weight of edges: ' + str(max_weight(graph))
+    if nx.is_connected(graph):
+        print 'Graph is completely connected.'
+    else:
+        print 'Graph is disjoint.'
+    #print 'Betweenness centrality: ' + str(nx.betweenness_centrality(graph)) # It can be done!
+    print '*' * defaults.asterisk_space_count
 ####################################################################################
 
 
@@ -155,7 +155,7 @@ Returns the total number of nodes in a graph.
 '''
 ####################################################################################
 def num_nodes(graph):
-   return nx.number_of_nodes(graph)
+    return nx.number_of_nodes(graph)
 ####################################################################################
 
 
@@ -166,7 +166,7 @@ Returns a string with the date and the time.
 '''
 ####################################################################################
 def date_time():
-   return datetime.datetime.now()
+    return datetime.datetime.now()
 ####################################################################################
 
 
@@ -177,8 +177,8 @@ Returns a string with the date and the time.
 '''
 ####################################################################################
 def time():
-   now = datetime.datetime.now()
-   return datetime.time(now.hour, now.minute, now.second)
+    now = datetime.datetime.now()
+    return datetime.time(now.hour, now.minute, now.second)
 ####################################################################################
 
 
@@ -189,7 +189,7 @@ Sleeps for a number of milliseconds
 '''
 ####################################################################################
 def sleep_ms(ms):
-   sleep(((float)(ms)) / ((float)(1000)))
+    sleep(((float)(ms)) / ((float)(1000)))
 ####################################################################################
 
 
@@ -206,12 +206,12 @@ Returns the difference between two timestamps.
 '''
 ####################################################################################
 def time_diff(ts1, ts2):
-   if ts1 > ts2:
-      td = ts1 - ts2
-   else:
-      td = ts2 - ts1
-   td = int(td.total_seconds())
-   return td
+    if ts1 > ts2:
+        td = ts1 - ts2
+    else:
+        td = ts2 - ts1
+    td = int(td.total_seconds())
+    return td
 ####################################################################################
 
 
@@ -226,7 +226,7 @@ Creates an attribute with an initial value.
 '''
 ####################################################################################
 def create_node_attribute(graph, attr, init_value):
-   nx.set_node_attributes(graph, attr, init_value)
+    nx.set_node_attributes(graph, attr, init_value)
 ####################################################################################
 
 
@@ -242,7 +242,7 @@ Creates an attribute with an initial value on a specific node.
 '''
 ####################################################################################
 def create_single_node_attribute(graph, node, attr, init_value):
-   graph.node[node][attr] = init_value
+    graph.node[node][attr] = init_value
 ####################################################################################
 
 
@@ -258,8 +258,8 @@ Creates an attribute with an initial value given a list of nodes.
 '''
 ####################################################################################
 def create_node_list_attribute(graph, node_list, attr, init_value):
-   for node in node_list:
-      graph.node[node][attr] = init_value
+    for node in node_list:
+        graph.node[node][attr] = init_value
 ####################################################################################
 
 
@@ -275,8 +275,8 @@ Randomizes attributes of all nodes in a graph to a value in a specified range.
 '''
 ####################################################################################
 def randomize_node_attribute(graph, attr, low, high):
-   for node in graph.node:
-      graph.node[node][attr] = rand.randint(low, high)
+    for node in graph.node:
+        graph.node[node][attr] = rand.randint(low, high)
 ####################################################################################
 
 
@@ -293,7 +293,7 @@ Randomizes attributes of a single node in a graph to a value in a specified rang
 '''
 ####################################################################################
 def randomize_single_node_attribute(graph, node, attr, low, high):
-   graph.node[node][attr] = rand.randint(low, high)
+    graph.node[node][attr] = rand.randint(low, high)
 ####################################################################################
 
 
@@ -310,8 +310,8 @@ Randomizes attributes of all nodes in a graph to a value in a specified range.
 '''
 ####################################################################################
 def randomize_node_list_attribute(graph, attr, low, high):
-   for node in node_list:
-      graph.node[node][attr] = rand.randint(low, high)
+    for node in node_list:
+        graph.node[node][attr] = rand.randint(low, high)
 ####################################################################################
 
 
@@ -328,8 +328,8 @@ are set to true.
 '''
 ####################################################################################
 def randomize_node_attribute_boolean(graph, attr, true_chance):
-   for node in graph.node:
-      graph.node[node][attr] = chance(true_chance)
+    for node in graph.node:
+        graph.node[node][attr] = chance(true_chance)
 ####################################################################################
 
 
@@ -347,7 +347,7 @@ attributes are set to true.
 '''
 ####################################################################################
 def randomize_single_node_attribute_boolean(graph, node, attr, true_chance):
-   graph.node[node][attr] = chance(true_chance)
+    graph.node[node][attr] = chance(true_chance)
 ####################################################################################
 
 
@@ -365,8 +365,8 @@ are set to true.
 '''
 ####################################################################################
 def randomize_node_list_attribute_boolean(graph, node_list, attr, true_chance):
-   for node in node_list:
-      graph.node[node][attr] = chance(true_chance)
+    for node in node_list:
+        graph.node[node][attr] = chance(true_chance)
 ####################################################################################
 
 
@@ -381,7 +381,7 @@ Creates an edge attribute with an initial value.
 '''
 ####################################################################################
 def create_edge_attribute(graph, attr, init_value):
-   nx.set_edge_attributes(graph, attr, init_value)
+    nx.set_edge_attributes(graph, attr, init_value)
 ####################################################################################
 
 
@@ -398,7 +398,7 @@ Creates a single edge attribute with an initial value.
 '''
 ####################################################################################
 def create_single_edge_attribute(graph, u, v, attr, init_value):
-   graph.edge[u][v][attr] = init_value
+    graph.edge[u][v][attr] = init_value
 ####################################################################################
 
 
@@ -414,8 +414,8 @@ Creates an edge attribute with an initial value across a list of edges.
 '''
 ####################################################################################
 def create_edge_list_attribute(graph, edge_list, attr, init_value):
-   for u,v in edge_list:
-      graph.edge[u][v][attr] = init_value
+    for u,v in edge_list:
+        graph.edge[u][v][attr] = init_value
 ####################################################################################
 
 
@@ -431,10 +431,10 @@ Randomizes attributes of all edges in a graph to a value in a specified range.
 '''
 ####################################################################################
 def randomize_edge_attribute(graph, attr, low, high):
-   for source in graph.edge:
-      for dest in graph.edge[source]:
-            if source < dest or nx.is_directed(graph):
-               graph.edge[source][dest][attr] = rand.randint(low, high)
+    for source in graph.edge:
+        for dest in graph.edge[source]:
+                if source < dest or nx.is_directed(graph):
+                    graph.edge[source][dest][attr] = rand.randint(low, high)
 ####################################################################################
 
 
@@ -452,7 +452,7 @@ Randomizes attributes of a single edge in a graph to a value in a specified rang
 '''
 ####################################################################################
 def randomize_single_edge_attribute(graph, u, v, attr, low, high):
-   graph.edge[u][v][attr] = rand.randint(low, high)
+    graph.edge[u][v][attr] = rand.randint(low, high)
 ####################################################################################
 
 
@@ -469,8 +469,8 @@ Randomizes attributes of all edges in a graph to a value in a specified range.
 '''
 ####################################################################################
 def randomize_edge_list_attribute(graph, edge_list, attr, low, high):
-   for u,v in edge_list:
-      graph.edge[u][v][attr] = rand.randint(low, high)
+    for u,v in edge_list:
+        graph.edge[u][v][attr] = rand.randint(low, high)
 ####################################################################################
 
 
@@ -486,10 +486,10 @@ are set to true.
 '''
 ####################################################################################
 def randomize_edge_attribute_boolean(graph, attr, true_chance):
-   for source in graph.edge:
-      for dest in graph.edge[source]:
-         if source < dest or nx.is_directed(graph):
-            graph.edge[source][dest][attr] = chance(true_chance)
+    for source in graph.edge:
+        for dest in graph.edge[source]:
+            if source < dest or nx.is_directed(graph):
+                graph.edge[source][dest][attr] = chance(true_chance)
 ####################################################################################
 
 
@@ -507,7 +507,7 @@ are set to true.
 '''
 ####################################################################################
 def randomize_single_edge_attribute_boolean(graph, u, v, attr, true_chance):
-   graph.edge[u][v][attr] = chance(true_chance)
+    graph.edge[u][v][attr] = chance(true_chance)
 ####################################################################################
 
 
@@ -522,9 +522,9 @@ are set to true.
         true_chance: A chance that for any edge it will initialize to true
 '''
 ####################################################################################
-def randomize_edge_attribute_boolean(graph, edge_list, attr, true_chance):
-   for u,v in edge_list:
-      graph.edge[u][v][attr] = chance(true_chance)
+def randomize_edge_list_attribute_boolean(graph, edge_list, attr, true_chance):
+    for u,v in edge_list:
+        graph.edge[u][v][attr] = chance(true_chance)
 ####################################################################################
 
 
@@ -541,14 +541,14 @@ Subgraph completion check, takes only a graph argument.
        -1 if we have 0 nodes left in all subgraphs
 '''
 ####################################################################################
-def check_subgraph_spread(graph):
-   if (subgraph_max_spread(graph)):
-      return 1 # We have finished the graph as best we could
-   else:
-      if (num_flagged(graph) > 0):
-         return 0 # We have not finished the graph
-      else:
-         return -1 # We have 0 infected nodes. Graph failed.
+def check_subgraph_spread(graph, attr):
+    if (subgraph_max_spread(graph, attr)):
+        return 1 # We have finished the graph as best we could
+    else:
+        if (num_flagged(graph, attr) > 0):
+            return 0 # We have not finished the graph
+        else:
+            return -1 # We have 0 infected nodes. Graph failed.
 ####################################################################################
 
 
@@ -565,28 +565,28 @@ May run into problems if directed graphs are ever considered.
               partially complete graph
 '''
 ####################################################################################
-def subgraph_max_spread(graph):
-   graphs = list(nx.connected_component_subgraphs(graph, copy=True))
-   num_subgraphs = len(graphs)
-   graphs_max_spread = 0
-   graphs_partial_spread = 0
-   for graph in graphs:
-      all_flagged = True
-      has_any_flag = False
-      for node in graph.node:
-         if not graph.node[node]['flagged']:
-            all_flagged = False
-         else:
-            has_any_flag = True
-      if (all_flagged):
-         graphs_max_spread += 1
-      elif (has_any_flag == True):
-         graphs_partial_spread += 1
+def subgraph_max_spread(graph, attr):
+    graphs = list(nx.connected_component_subgraphs(graph, copy=True))
+    num_subgraphs = len(graphs)
+    graphs_max_spread = 0
+    graphs_partial_spread = 0
+    for graph in graphs:
+        all_flagged = True
+        has_any_flag = False
+        for node in graph.node:
+            if not graph.node[node][attr]:
+                all_flagged = False
+            else:
+                has_any_flag = True
+        if (all_flagged):
+            graphs_max_spread += 1
+        elif (has_any_flag == True):
+            graphs_partial_spread += 1
 
-   if graphs_max_spread >= 1 and graphs_partial_spread == 0:
-      return True
-   else:
-      return False
+    if graphs_max_spread >= 1 and graphs_partial_spread == 0:
+        return True
+    else:
+        return False
 ####################################################################################
 
 
@@ -605,8 +605,8 @@ a given maximum weight (chance = given/maximum)
 '''
 ####################################################################################
 def roll_weight(curr_weight, max_weight):
-   # Returns the likelihood of engagement based on weight of graph nodes
-   return rand.randint(1, max_weight) > (max_weight - curr_weight)
+    # Returns the likelihood of engagement based on weight of graph nodes
+    return rand.randint(1, max_weight) > (max_weight - curr_weight)
 ####################################################################################
 
 
@@ -624,7 +624,7 @@ Returns whether or not a round has exceeded a round limit.
 '''
 ####################################################################################
 def exceeded_round_limit(curr_round, max_rounds):
-   return curr_round > max_rounds
+    return curr_round > max_rounds
 ####################################################################################
 
 
@@ -640,7 +640,7 @@ Returns a deep copy of a graph provided to the function
 '''
 ####################################################################################
 def copy_graph(graph):
-   return copy.deepcopy(graph)
+    return copy.deepcopy(graph)
 ####################################################################################
 
 
@@ -657,8 +657,8 @@ Modifies the graph and adds and removes edges and nodes that are provided.
 '''
 ####################################################################################
 def modify_graph(graph, add_node_list, remove_node_list, add_edge_list, remove_edge_list):
-   modify_graph_edges(graph, add_edge_list, remove_edge_list)
-   modify_graph_nodes(graph, add_node_list, remove_node_list)
+    modify_graph_edges(graph, add_edge_list, remove_edge_list)
+    modify_graph_nodes(graph, add_node_list, remove_node_list)
 ####################################################################################
 
 
@@ -673,10 +673,10 @@ Modifies the graph and specifically deals with removing edges.
 '''
 ####################################################################################
 def modify_graph_edges(graph, add_edge_list, remove_edge_list):
-   for v1,v2 in remove_edge_list:
-      graph.remove_edge(v1, v2)
-   for v1,v2 in add_edge_list:
-      graph.add_edge(v1, v2)
+    for v1,v2 in remove_edge_list:
+        graph.remove_edge(v1, v2)
+    for v1,v2 in add_edge_list:
+        graph.add_edge(v1, v2)
 ####################################################################################
 
 
@@ -691,10 +691,10 @@ Modifies the graph and specifically deals with removing nodes.
 '''
 ####################################################################################
 def modify_graph_nodes(graph, add_node_list, remove_node_list):
-   for v in remove_node_list:
-      graph.remove_node(v)
-   for v in add_node_list:
-      graph.add_node(v)
+    for v in remove_node_list:
+        graph.remove_node(v)
+    for v in add_node_list:
+        graph.add_node(v)
 ####################################################################################
 
 
@@ -711,14 +711,14 @@ Takes an edge list and appends a (node, node) tuple to represent an edge.
 '''
 ####################################################################################
 def add_edge_to_list(edge_list, u, v, undirected=True):
-   # If a graph is undirected, check edge v,u as well as u,v
-   if (undirected):
-      if (tuple([v,u]) in edge_list):
-         return # We do not want to continue
+    # If a graph is undirected, check edge v,u as well as u,v
+    if (undirected):
+        if (tuple([v,u]) in edge_list):
+            return # We do not want to continue
 
-   # If there is not a conflict in the list, add the list
-   if (tuple([u,v]) not in edge_list):
-      edge_list.append(tuple([u, v]))
+    # If there is not a conflict in the list, add the list
+    if (tuple([u,v]) not in edge_list):
+        edge_list.append(tuple([u, v]))
 ####################################################################################
 
 
@@ -732,8 +732,8 @@ Takes a list and appends a node to the list.
 '''
 ####################################################################################
 def add_node_to_list(node_list, node):
-   if (node not in node_list):
-      node_list.append(node)
+    if (node not in node_list):
+        node_list.append(node)
 ####################################################################################
 
 
@@ -749,15 +749,15 @@ Returns the dictionary key with the maximum value.
 '''
 ####################################################################################
 def get_max_in_dict(_dict):
-   max_node = None
-   max_node_value = float('-inf')   
+    max_node = None
+    max_node_value = float('-inf')    
 
-   for node in _dict:
-      if (_dict[node] > max_node_value):
-         max_node = node
-         max_node_value = _dict[node]
+    for node in _dict:
+        if (_dict[node] > max_node_value):
+            max_node = node
+            max_node_value = _dict[node]
 
-   return max_node
+    return max_node
 ####################################################################################
 
 
@@ -773,15 +773,15 @@ Returns the dictionary key with the maximum value.
 '''
 ####################################################################################
 def get_min_in_dict(_dict):
-   min_node = None
-   min_node_value = float('inf')
+    min_node = None
+    min_node_value = float('inf')
 
-   for node in _dict:
-      if (_dict[node] < min_node_value):
-         min_node = node
-         min_node_value = _dict[node]
+    for node in _dict:
+        if (_dict[node] < min_node_value):
+            min_node = node
+            min_node_value = _dict[node]
 
-   return min_node
+    return min_node
 ####################################################################################
 
 
@@ -797,7 +797,7 @@ Returns a dictionary of all nodes in a graph and their betweenness centrality.
 '''
 ####################################################################################
 def betweenness_centrality(graph):
-    return nx.betweenness_centrality(graph)
+     return nx.betweenness_centrality(graph)
 ####################################################################################
 
 
@@ -813,11 +813,11 @@ Returns a sorted list from an unsorted dictionary.
 '''
 ####################################################################################
 def get_max_betweenness_node(graph):
-   _dict = betweenness_centrality(graph)
+    _dict = betweenness_centrality(graph)
 
-   max_node = get_max_in_dict(_dict)
+    max_node = get_max_in_dict(_dict)
 
-   return max_node
+    return max_node
 ####################################################################################
 
 
@@ -833,8 +833,8 @@ Takes an unsorted dictionary and returns a sorted list by dictionary.
 '''
 ####################################################################################
 def sort_dict_ascending(_dict):
-   from operator import itemgetter
-   return sorted(adict.iteritems(), key=itemgetter(1), reverse=False)
+    from operator import itemgetter
+    return sorted(adict.iteritems(), key=itemgetter(1), reverse=False)
 ####################################################################################
 
 
@@ -850,8 +850,57 @@ Takes an unsorted dictionary and returns a sorted list by dictionary.
 '''
 ####################################################################################
 def sort_dict_descending(_dict):
-   from operator import itemgetter
-   return sorted(_dict.iteritems(), key=itemgetter(1), reverse=True)
+    from operator import itemgetter
+    return sorted(_dict.iteritems(), key=itemgetter(1), reverse=True)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Will take an undirected graph and convert it to a directed graph.
+    Args:
+        graph: An undirected networkx graph instance.
+        
+    Returns:
+        A directed graph from the undirected graph.
+'''
+####################################################################################
+def to_directed(g):
+    return g.to_directed()
+####################################################################################
+
+
+
+####################################################################################
+'''
+Will take a directed graph and convert it to an undirected graph.
+    Args:
+        graph: A directed networkx graph instance.
+        
+    Returns:
+        An undirected graph from the directed graph.
+'''
+####################################################################################
+def to_undirected(g):
+    return g.to_undirected()
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns a list of neighbors given a graph and a node
+    Args:
+        graph: A networkx graph instance.
+        node: A node for which we will get neighbors.
+        
+    Returns:
+        An iterable containing the neighbors of the passed in node.
+'''
+####################################################################################
+def get_neighbors(g, node):
+    return nx.all_neighbors(g, node)
 ####################################################################################
 
 
