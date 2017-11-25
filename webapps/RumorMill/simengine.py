@@ -133,7 +133,7 @@ def round(graph, max_weight, run_name):
    graph_copy = copy.deepcopy(graph)
 
    for node in nx.nodes(graph):
-      config.on_node(graph, graph_copy, node, max_weight, run_name)
+      config.on_node(graph, graph_copy, node, max_weight, round_num, run_name)
 
    config.after_round_end(graph, run_name)
 

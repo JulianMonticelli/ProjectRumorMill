@@ -29,7 +29,7 @@ import datetime
 # Simulation setup
 import simdefaults as defaults
 import simhelper as helper
-import adv_zombie_config as config
+import iot_spy as config
 # Replace ^ that argument for different simulations
 
 
@@ -98,10 +98,10 @@ def run(graph, max_weight, max_allowed_rounds, run_name):
         last_heartbeat = helper.time_diff(now, last_timestamp)
         if (last_heartbeat >= config.heartbeat_interval):
             last_timestamp = now
-            config.heartbeat(now, last_heartbeat, run_name)
+            config.heartbeat(now, last_heartbeat, round_num, run_name)
         
 	  # Run the round
-        round(graph, max_weight, run_name)
+        round(graph, max_weight, round_num, run_name)
 
     # Check why we quit the simulation
     finish_code = config.finished_hook(graph, round_num, max_allowed_rounds, run_name)
@@ -124,37 +124,48 @@ A step in the simulation.
       run_name: The name of the run
 '''
 ####################################################################################
-def round(graph, max_weight, run_name):
+def round(graph, max_weight, round_num, run_name):
     # Declare empty list for graph changes
     add_node_list = []
     remove_node_list = []
     add_edge_list = []
     remove_edge_list = []
 
-    # Deal with potential before-round graph changes (edge addition/removals)
-    config.before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name)
+    #
+    # WARNING: Notice that before_round_start HAS max_weight as an argument
+    # and after_round_end does not. This may need to be changed at a later
+    # date.
+    #
+    
+    # Deal with potential before-round graph changes 
+    config.before_round_start(graph, max_weight, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name)
 
     # Perform graph changes, if there are any
-    helper.modify_graph_edges(graph, add_edge_list, remove_edge_list)
+    helper.modify_graph(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list)
 
     # Fix edge attributes as config deems necessary
-    config.post_edge_modification(graph, add_edge_list, run_name)
+    config.post_graph_modification(graph, add_edge_list, add_node_list, run_name)
+    
+    add_node_list = []
+    remove_node_list = []
+    add_edge_list = []
+    remove_edge_list = []
 
     # Deep copy graph after pre-round graph changes
     graph_copy = helper.copy_graph(graph)
 
     for node in nx.nodes(graph):
-        config.on_node(graph, graph_copy, node, max_weight, run_name)
+        config.on_node(graph, graph_copy, node, max_weight, round_num, run_name)
 
-    # Deal with potential post-round graph changes (node addition/removals)
-    config.after_round_end(graph, add_node_list, remove_node_list, run_name)
+    # Deal with potential post-round graph changes 
+    config.after_round_end(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name)
 
     # Fix node attributes as config deems necessary
     # Also, any reconsiderations 
-    config.post_node_modification(graph, add_node_list, run_name)
+    config.post_graph_modification(graph, add_edge_list, add_node_list, run_name)
 
     # Perform graph changes, if there are any
-    helper.modify_graph_nodes(graph, add_node_list, remove_node_list)
+    helper.modify_graph(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list)
 ####################################################################################
 
 

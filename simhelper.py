@@ -134,10 +134,14 @@ def output_graph_information(graph):
     print 'Graph has ' + str(graph.number_of_nodes()) + ' node(s) and ' + str(graph.number_of_edges()) + ' edge(s).'
     print 'Density: ' + str(nx.density(graph))
     print 'Max weight of edges: ' + str(max_weight(graph))
-    if nx.is_connected(graph):
-        print 'Graph is completely connected.'
+    if not nx.is_directed(graph):
+        print 'Graph is undirected.'
+        if nx.is_connected(graph):
+            print 'Graph is completely connected.'
+        else:
+            print 'Graph is disjoint.'
     else:
-        print 'Graph is disjoint.'
+        print 'Graph is directed.'
     #print 'Betweenness centrality: ' + str(nx.betweenness_centrality(graph)) # It can be done!
     print '*' * defaults.asterisk_space_count
 ####################################################################################
@@ -631,6 +635,26 @@ def exceeded_round_limit(curr_round, max_rounds):
 
 ####################################################################################
 '''
+Returns whether or not a simulation has gone on for too long without an update.
+    Args:
+        last_update_round: The last round in which the graph updated
+        curr_round: The current round of a simulation
+        max_rounds_no_update: Maximum number of rounds a simulation is allowed to go
+                              on without an update.
+
+    Returns:
+        True if a simulation has exceeded the maximum number of rounds
+        False if a simulation has not exceeded the maximum number of rounds
+'''
+####################################################################################
+def exceeded_round_no_update_limit(last_update_round, curr_round, max_rounds_no_update):
+    return (curr_round-last_update_round) > max_rounds_no_update
+####################################################################################
+
+
+
+####################################################################################
+'''
 Returns a deep copy of a graph provided to the function
     Args:
         graph: The graph that shall be copied
@@ -656,7 +680,7 @@ Modifies the graph and adds and removes edges and nodes that are provided.
         remove_edge_list: A list of edges to be removed
 '''
 ####################################################################################
-def modify_graph(graph, add_node_list, remove_node_list, add_edge_list, remove_edge_list):
+def modify_graph(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list):
     modify_graph_edges(graph, add_edge_list, remove_edge_list)
     modify_graph_nodes(graph, add_node_list, remove_node_list)
 ####################################################################################
@@ -890,7 +914,9 @@ def to_undirected(g):
 
 ####################################################################################
 '''
-Returns a list of neighbors given a graph and a node
+Returns an iterator of neighbors given a graph and a node.
+NOTE: According to the networx documentation, this will return a list
+with precessors AND successors in the case of a directed graph.
     Args:
         graph: A networkx graph instance.
         node: A node for which we will get neighbors.
@@ -901,6 +927,49 @@ Returns a list of neighbors given a graph and a node
 ####################################################################################
 def get_neighbors(g, node):
     return nx.all_neighbors(g, node)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns an iterator of neighbors given a graph and a node.
+NOTE: According to the networx documentation, this will return a list
+with precessors AND successors in the case of a directed graph.
+    Args:
+        graph: A networkx graph instance.
+        node: A node for which we will get neighbors.
+        
+    Returns:
+        An iterable containing the neighbors of the passed in node.
+'''
+####################################################################################
+def get_neighbors_list(g, node):
+    return list(nx.all_neighbors(g, node))
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns an iterator of neighbors given a graph and a node.
+NOTE: According to the networx documentation, this will return a list
+with precessors AND successors in the case of a directed graph.
+    Args:
+        graph: A networkx graph instance.
+        node: A node for which we will get neighbors.
+        
+    Returns:
+        An iterable containing the neighbors of the passed in node.
+'''
+####################################################################################
+def get_unique_neighbors_list(g, node):
+    neighbor_list = list(nx.all_neighbors(g, node))
+    unique_list = []
+    for n in neighbor_list:
+        if n not in unique_list:
+            unique_list.append(n)
+    return unique_list
 ####################################################################################
 
 

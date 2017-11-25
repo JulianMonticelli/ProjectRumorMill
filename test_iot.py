@@ -3,13 +3,14 @@ import networkx as nx
 import pytest
 
 import iot_spy as config
+import simhelper as helper
 
 '''
 Read in the test.csv graph with a given radius.
 '''
 @pytest.fixture(scope='function')
-def setup_test_graph_from_test_csv(radius):
-    g = config.iot_graph('iot/test.csv', radius)
+def setup_test_graph_from_test_csv_xyz(radius):
+    g = config.iot_graph_xyz('iot/test.csv', radius)
     return g
 
     
@@ -30,13 +31,130 @@ def test_graph_cross():
     g.add_edge('1', '4')
     g.add_edge('1', '5')
     
-    g = helper.to_directed(g)
+    for node in g:
+        g.node[node]['online'] = True # Each node should be online at first
+        g.node[node]['broadcast_delay'] = 0
+        for hasnode in g:
+            g.node[node]['has_' + hasnode] = False # Every node should not have each other's information
     
-    return g
+    ug = helper.to_directed(g)
     
+    for u in ug.edge:
+        for v in ug.edge[u]:
+            ug.edge[u][v]['broadcast_information'] = None
+    
+    return ug
+
+'''
+Test that our test graphs return unfinished.
+'''
+def test_graph_not_finished():
+    g = setup_test_graph_from_test_csv_xyz(10)
+    assert config.finished_hook(g, 0, 0, 'run_name') == 0
+    g = test_graph_cross()
+    assert config.finished_hook(g, 0, 0, 'run_name') == 0
+
+    
+    
+'''
+Test that a complete graph finishes upon calling the
+finished hook.
+'''
+def test_graph_finished():
+    g = test_graph_cross()
+    for node in g.node:
+        for node2 in g.node:
+            g.node[node]['has_' + node2] = True
+            
+    assert config.finished_hook(g, 0, 0, 'run_name') == 1
+    
+    
+'''
+Tests whether or not a graph will appropriately set broadcast_information
+on all relevant nodes using the cross graph.
+'''
+def test_cross_graph_center_edge_spread():
+    g = test_graph_cross()
+    g.node['1']['has_1'] = True
+    
+    config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
+    
+    assert(len(g.edge['1']) == 4)
+    
+    for edge_to in g.edge['1']:
+        assert(g.edge['1'][edge_to]['broadcast_information'] == '1')
+
+        
+'''
+Tests whether or not a graph will appropriately set broadcast_information
+on all relevant nodes using the cross graph and makes sure that the center
+node does not recieve the broadcast.
+'''
+def test_cross_graph_center_edge_receives_four_transmissions():
+    g = test_graph_cross()
+    
+    # 'has_1' is odd in this context, but whatever
+    g.node['2']['has_1'] = True
+    g.node['3']['has_1'] = True
+    g.node['4']['has_1'] = True
+    g.node['5']['has_1'] = True
+    
+    config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
+
+    gc = helper.copy_graph(g)
+    
+    for node in g:
+        config.on_node(g, gc, node, float('-inf'), 0, 'run_name')
+        
+    assert(len(g.edge['1']) == 4)
+    
+    # Test that the information DID NOT get spread to the center node
+    assert not g.node['1']['has_1']
+    
+    # Test that there is a broadcast_delay on each node that is not 0
+    assert g.node['2']['broadcast_delay'] > 0
+    assert g.node['3']['broadcast_delay'] > 0
+    assert g.node['4']['broadcast_delay'] > 0
+    assert g.node['5']['broadcast_delay'] > 0
+    
+
+'''
+Tests whether or not a graph will appropriately reset broadcast_information
+at the end of a round.
+'''
+def test_cross_graph_center_edge_spread():
+    g = test_graph_cross()
+    g.node['1']['has_1'] = True
+    
+    config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
+    
+    assert(len(g.edge['1']) == 4)
+    
+    config.after_round_end(g, [], [], [], [], 0, 'run_name')
+    
+    for edge_to in g.edge['1']:
+        assert(g.edge['1'][edge_to]['broadcast_information'] is None)
+        
+ 
+'''
+Tests whether or not a graph will spread transmission to other nodes as
+would happen in a simulation, given there are no conflicts.
+'''
 def test_cross_graph_center_information_spread():
     g = test_graph_cross()
-    # Stopped here
+    g.node['1']['has_1'] = True
+    
+    config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
+    
+    gc = helper.copy_graph(g)
+    
+    for node in g:
+        config.on_node(g, gc, node, float('-inf'), 0, 'run_name')
+        
+    for node in g:
+        assert(g.node[node]['has_1'])
+    
+    
 
     
 '''
