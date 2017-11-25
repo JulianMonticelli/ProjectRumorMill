@@ -195,6 +195,27 @@ Runs a game where you can select a node to infect and watch the outcome.
 '''
 ####################################################################################
 def zsim_game_runner():
+<<<<<<< HEAD
+    print '*' * 35 + '\nDESTROY ALL HUMANS IF POSSIBLE\n' + '*' * 35
+    print 'The list of all nodes and their betweenness centrality: '
+    graph_game = nx.read_graphml('custom_graphs/small_zombie_adv.graphml')
+    betweenness_dict = helper.betweenness_centrality(graph_game)
+    print helper.sort_dict_descending(betweenness_dict)
+    node_selected = -1
+    while (node_selected not in graph_game.node):
+        node_selected = str(input('Choose a node to infect: '))
+        if (node_selected not in graph_game.node):
+            print 'Invalid node! Try again.'
+    sim_name = 'zs_game'
+    init(graph_game, node_selected, sim_name)
+    engine.simulate(graph_game, 1, sim_name)
+    if (humans_won > 0):
+        print 'You failed to infect all of the humans. Boo.'
+    elif (zombies_won > 0):
+        print 'You have succeeded to infect all humans. Good job!'
+    else:
+        print 'All humans and zombies are dead. This means that starvation probably killed humans while they were in the process of killing all the zombies'
+=======
    print '*' * 35 + '\nDESTROY ALL HUMANS IF POSSIBLE\n' + '*' * 35
    print 'The list of all nodes and their betweenness centrality: '
    graph_game = nx.read_graphml('custom_graphs/small_zombie_adv.graphml')
@@ -214,6 +235,7 @@ def zsim_game_runner():
       print 'You have succeeded to infect all humans. Good job!'
    else:
       print 'All humans and zombies are dead. This means that starvation probably killed humans while they were in the process of killing all the zombies'
+>>>>>>> 5726d071ea6167ac7a985c0deb8b471b2d091532
 ####################################################################################
 
 
@@ -332,6 +354,18 @@ def on_not_flagged(graph, graph_copy, node, max_weight, run_name):
     if (helper.chance(find_food_chance)):
         handle_find_food(graph, node)
 
+<<<<<<< HEAD
+    # Leader nodes and non-leader nodes think differently
+    if not node == leader_node:
+        for neighbor in nx.all_neighbors(graph, node):
+            if not graph.node[neighbor]['infected']:
+                human_human_interaction(graph, node, neighbor, max_weight, run_name)
+                # If ever our currently considered node is dead, return
+                if (is_dead(graph, node)):
+                    return
+    else: 
+        handle_leader_node(graph, node)
+=======
    # Leader nodes and non-leader nodes think differently
    if not node == leader_node:
       for neighbor in nx.all_neighbors(graph, node):
@@ -344,6 +378,7 @@ def on_not_flagged(graph, graph_copy, node, max_weight, run_name):
    elif node == leader_node:
       print 'detected leader node!!!' 
       handle_leader_node(graph, node)
+>>>>>>> 5726d071ea6167ac7a985c0deb8b471b2d091532
 
         # Do something with the neighbor? Could help or harm
 

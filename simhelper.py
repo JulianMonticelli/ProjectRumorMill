@@ -952,6 +952,20 @@ def get_neighbors_list(g, node):
 
 ####################################################################################
 '''
+Print iterable object with linebreak.
+    Args:
+        _iterable: An iterable object (iterator, list, etc.)
+'''
+####################################################################################
+def print_iterable_linebreak(_iterable):
+    for it in _iterable:
+        print it
+####################################################################################
+
+
+
+####################################################################################
+'''
 Returns an iterator of neighbors given a graph and a node.
 NOTE: According to the networx documentation, this will return a list
 with precessors AND successors in the case of a directed graph.
