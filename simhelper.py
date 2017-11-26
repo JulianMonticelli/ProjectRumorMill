@@ -848,7 +848,7 @@ def get_max_betweenness_node(graph):
 
 ####################################################################################
 '''
-Takes an unsorted dictionary and returns a sorted list by dictionary.
+Takes an unsorted dictionary and returns a dictionary sorted by value, ascending.
     Args:
         _dict: A dictionary which we will sort
 
@@ -865,7 +865,7 @@ def sort_dict_ascending(_dict):
 
 ####################################################################################
 '''
-Takes an unsorted dictionary and returns a sorted list by dictionary.
+Takes an unsorted dictionary and returns a dictionary sorted by value, descending.
     Args:
         _dict: A dictionary which we will sort
 

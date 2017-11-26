@@ -12,12 +12,6 @@
 # Julian Monticelli
 #######################
 
-###############
-# Important!! #
-# Whitespace! #
-# -> 3 spaces #
-###############
-
 
 import argparse         # Parse command line args
 import copy             # For copying graphs
@@ -49,10 +43,10 @@ def main():
 ####################################################################################
 '''
 Simulation function - to be changed and altered. Highly volatile.
-   Args:
-      graph: A networkx graph instance.
-      num_simulations: An integer indicating how many time we want to run in this execution.
-      sim_name: A string that describes the current simulation
+    Args:
+        graph: A networkx graph instance.
+        num_simulations: An integer indicating how many time we want to run in this execution.
+        sim_name: A string that describes the current simulation
 '''
 ####################################################################################
 def simulate(graph, num_simulations, sim_name):
@@ -71,11 +65,11 @@ def simulate(graph, num_simulations, sim_name):
 ####################################################################################
 '''
 A single run of a simulation.
-   Args:
-      graph: A networkx graph instance.
-      max_weight: An integer which is the max weight of edges in this graph.
-      max_allowed_rounds: An integer which is set to be the max allowed number of rounds.
-      run_name: The name of the run
+    Args:
+        graph: A networkx graph instance.
+        max_weight: An integer which is the max weight of edges in this graph.
+        max_allowed_rounds: An integer which is set to be the max allowed number of rounds.
+        run_name: The name of the run
 '''
 ####################################################################################
 def run(graph, max_weight, max_allowed_rounds, run_name):
@@ -118,10 +112,10 @@ def run(graph, max_weight, max_allowed_rounds, run_name):
 ####################################################################################
 '''
 A step in the simulation.
-   Args:
-      graph: A networkx graph instance.
-      max_weight: An integer which is the max weight of edges in this graph.
-      run_name: The name of the run
+    Args:
+        graph: A networkx graph instance.
+        max_weight: An integer which is the max weight of edges in this graph.
+        run_name: The name of the run
 '''
 ####################################################################################
 def round(graph, max_weight, round_num, run_name):

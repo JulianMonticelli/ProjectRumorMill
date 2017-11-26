@@ -1,9 +1,5 @@
 {
   "test_helper.py::test_will_spread": true, 
-  "test_iot.py::test_cross_graph_center_edge_receives_four_transmissions": true, 
-  "test_iot.py::test_cross_graph_center_information_spread": true, 
-  "test_iot.py::test_csv_graph_distance_10": true, 
-  "test_iot.py::test_csv_graph_distance_100": true, 
   "test_sim.py": true, 
   "test_simround.py": true, 
   "test_simrun.py": true, 

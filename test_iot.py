@@ -5,17 +5,28 @@ import pytest
 import iot_spy as config
 import simhelper as helper
 
+
 '''
-Read in the test.csv graph with a given radius.
+Read in the text.csv graph, where range is given.
 '''
 @pytest.fixture(scope='function')
-def setup_test_graph_from_test_csv_xyz(radius):
-    g = config.iot_graph_xyz('iot/test.csv', radius)
+def setup_test_graph():
+    g = config.iot_graph('iot/test.csv')
     return g
 
-    
+'''
+Read in the test_xyz.csv graph with a given radius.
+'''
 @pytest.fixture(scope='function')
-def test_graph_cross():
+def setup_test_graph_from_test_xyz_csv(radius):
+    g = config.iot_graph_xyz('iot/test_xyz.csv', radius)
+    return g
+
+'''
+Construct a cross graph, with node 1 in the middle.
+'''
+@pytest.fixture(scope='function')
+def test_cross_graph():
     g = nx.Graph()
     
     # Add five nodes
@@ -39,20 +50,48 @@ def test_graph_cross():
     
     ug = helper.to_directed(g)
     
+    
     for u in ug.edge:
         for v in ug.edge[u]:
             ug.edge[u][v]['broadcast_information'] = None
     
     return ug
 
+    
 '''
-Test that our test graphs return unfinished.
+
 '''
-def test_graph_not_finished():
-    g = setup_test_graph_from_test_csv_xyz(10)
-    assert config.finished_hook(g, 0, 0, 'run_name') == 0
-    g = test_graph_cross()
-    assert config.finished_hook(g, 0, 0, 'run_name') == 0
+def a():
+    assert True
+    
+    
+'''
+Checks that the import IOT graph as x,y, range works as intended.
+Important: I drew out nodes on a grid with ranges, and x and y coordinates.
+This test may not work if you alter test.csv.
+'''
+def test_iot_graph_correct_digraph():
+    g = setup_test_graph()
+    
+    # A list for all of the nodes that exist (1-7)
+    all_nodes_list = [node for node in g.node]
+    
+    # Create a dictionary for which paths to each node should have.
+    node_neighbor_dict = {}
+    node_neighbor_dict['1'] = ['2']
+    node_neighbor_dict['2'] = ['1', '3', '4']
+    node_neighbor_dict['3'] = []
+    node_neighbor_dict['4'] = ['1', '2', '3', '5', '6']
+    node_neighbor_dict['5'] = ['6']
+    node_neighbor_dict['6'] = ['5', '7']
+    node_neighbor_dict['7'] = []
+    
+    for node in node_neighbor_dict:
+        for n in node_neighbor_dict[node]:
+            assert(n in g.edge[node])
+        temp_list = [e for e in all_nodes_list if e not in node_neighbor_dict[node]]
+        for n in temp_list:
+            assert(n not in g.edge[node])
 
     
     
@@ -61,7 +100,7 @@ Test that a complete graph finishes upon calling the
 finished hook.
 '''
 def test_graph_finished():
-    g = test_graph_cross()
+    g = test_cross_graph()
     for node in g.node:
         for node2 in g.node:
             g.node[node]['has_' + node2] = True
@@ -74,7 +113,7 @@ Tests whether or not a graph will appropriately set broadcast_information
 on all relevant nodes using the cross graph.
 '''
 def test_cross_graph_center_edge_spread():
-    g = test_graph_cross()
+    g = test_cross_graph()
     g.node['1']['has_1'] = True
     
     config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
@@ -91,7 +130,7 @@ on all relevant nodes using the cross graph and makes sure that the center
 node does not recieve the broadcast.
 '''
 def test_cross_graph_center_edge_receives_four_transmissions():
-    g = test_graph_cross()
+    g = test_cross_graph()
     
     # 'has_1' is odd in this context, but whatever
     g.node['2']['has_1'] = True
@@ -123,7 +162,7 @@ Tests whether or not a graph will appropriately reset broadcast_information
 at the end of a round.
 '''
 def test_cross_graph_center_edge_spread():
-    g = test_graph_cross()
+    g = test_cross_graph()
     g.node['1']['has_1'] = True
     
     config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
@@ -141,7 +180,7 @@ Tests whether or not a graph will spread transmission to other nodes as
 would happen in a simulation, given there are no conflicts.
 '''
 def test_cross_graph_center_information_spread():
-    g = test_graph_cross()
+    g = test_cross_graph()
     g.node['1']['has_1'] = True
     
     config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
@@ -173,7 +212,7 @@ input, given that the test.csv is (with commas, of course):
 
 '''
 def test_csv_graph_distance_10():
-    g = setup_test_graph_from_test_csv(10)
+    g = setup_test_graph_from_test_xyz_csv(10)
     
     # A list for all of the nodes that exist
     all_nodes_list = [str(x) for x in range(1,11)]
@@ -201,7 +240,7 @@ def test_csv_graph_distance_10():
     
 
 def test_csv_graph_distance_100():
-    g = setup_test_graph_from_test_csv(100)
+    g = setup_test_graph_from_test_xyz_csv(100)
     
     all_nodes_list = [str(x) for x in range (1,11)]
     

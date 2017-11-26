@@ -15,7 +15,7 @@ import simdefaults as defaults
 # Simulation arguments#
 #######################
 
-SIM_DEBUG = True
+SIM_DEBUG = False
 
 maximum_allowed_simulation_rounds = 15000 # Max amount of rounds before we stop running a simulation
 
@@ -25,12 +25,12 @@ num_runs = 1
 
 max_receiving_transmissions = 1
 
-max_rounds_no_update = 1000
+max_rounds_no_update = 64
 
 # The amount of extra random integer results 
 rand_extra = 3
 
-csv_file = 'iot/p.csv'
+csv_file = 'iot/r.csv'
 
 radius_step = 5
 
@@ -41,11 +41,13 @@ radius_step = 5
 last_update_round = 0
 
 total_broadcasts_sent = {}
-total_broadcasts_received = {}
+total_broadcasts_received_successfully = {}
+total_broadcasts_received_overall = {}
 total_interference_failures = {}
 
 current_broadcasts_sent = {}
-current_broadcasts_received = {}
+current_broadcasts_received_successfully = {}
+current_broadcasts_received_overall = {}
 current_interference_failures = {}
 
 val_total = 0
@@ -61,6 +63,8 @@ A logically sound place to put data processing is at the end of this method.
 '''
 ####################################################################################
 def simulation_driver():
+    global total_broadcasts_sent, total_broadcasts_received_successfully, total_broadcasts_received_overall, total_interference_failures
+    global current_broadcasts_sent, current_broadcasts_received_successfully, current_broadcasts_received_overall, current_interference_failures
     
     # First read in a graph with initial
     graph = iot_graph(csv_file)
@@ -73,16 +77,15 @@ def simulation_driver():
     
     # Initialize total dictionaries
     for node in graph.node:
+        # Total dictionaries
         total_broadcasts_sent[node] = 0
-        total_broadcasts_received[node] = 0
+        total_broadcasts_received_successfully[node] = 0
+        total_broadcasts_received_overall[node] = 0
         total_interference_failures[node] = 0
-
-    
-    
-    # Set up empty dictionaries for current value
-    for node in graph.node:
+        # Current dictionaries
         current_broadcasts_sent[node] = 0
-        current_broadcasts_received[node] = 0
+        current_broadcasts_received_successfully[node] = 0
+        current_broadcasts_received_overall[node] = 0
         current_interference_failures[node] = 0
     
     # Simulation name will be something like "iot_p_10"
@@ -91,12 +94,27 @@ def simulation_driver():
     init(graph, sim_name)
     engine.simulate(graph, num_runs, sim_name)
 
+    print '*' * 40
     print 'This is the end of the simulation.'
+    print '*' * 40
+    
     for node in graph.node:
         print node + ':'
-        print '>Total broadcasts sent       = ' + str(total_broadcasts_sent[node])
-        print '>Total broadcasts receieved  = ' + str(total_broadcasts_received[node])
-        print '>Total interference failures = ' + str(total_interference_failures[node])
+        print '>Total broadcasts sent                    = ' + str(total_broadcasts_sent[node])
+        print '>Total broadcasts received (successfully) = ' + str(total_broadcasts_received_successfully[node])
+        print '>Total broadcasts received (overall)      = ' + str(total_broadcasts_received_overall[node])
+        print '>Total interference failures              = ' + str(total_interference_failures[node])
+    
+    mbcs = str(helper.get_max_in_dict(total_broadcasts_sent))
+    mbcrs = str(helper.get_max_in_dict(total_broadcasts_received_successfully))
+    mbcro = str(helper.get_max_in_dict(total_broadcasts_received_overall))
+    mif = str(helper.get_max_in_dict(total_interference_failures))
+    
+    print '>Max broadcasts sent:                     =' + mbcs + '\t(' + str(total_broadcasts_sent[mbcs]) + ')'
+    print '>Max broadcasts received (successfully)   = ' + mbcrs + '\t(' + str(total_broadcasts_received_successfully[mbcrs]) + ')'
+    print '>Max broadcasts received (overall)        = ' + mbcro + '\t(' + str(total_broadcasts_received_overall[mbcro]) + ')'
+    print '>Max interference failures                = ' + mif + '\t(' + str(total_interference_failures[mif]) + ')'
+        
 ####################################################################################
 
 
@@ -129,10 +147,10 @@ def iot_graph(__csvfile__):
     for row in csv_reader:
         g.add_node(row['node_name'])
         csv_data[row['node_name']] = {}
-        csv_data[row['node_name']]['x'] = row['x']
-        csv_data[row['node_name']]['y'] = row['y']
-        csv_data[row['node_name']]['range'] = row['range']
-    #print row['node_name'] + ' ' + row['x'] + ' ' + row['y'] + ' ' + row['range']
+        csv_data[row['node_name']]['x']     = float(row['x'])
+        csv_data[row['node_name']]['y']     = float(row['y'])
+        csv_data[row['node_name']]['range'] = float(row['range'])
+        print row['node_name'] + ' ' + row['x'] + ' ' + row['y'] + ' ' + row['range']
     
     csvfile.close()
     
@@ -141,8 +159,8 @@ def iot_graph(__csvfile__):
         for node2 in g.node:
             if node is not node2:
                 distance = math.sqrt(
-                                     (float(csv_data[node]['x']) - float(csv_data[node2]['x']))**2
-                                    +(float(csv_data[node]['y']) - float(csv_data[node2]['y']))**2
+                                     (csv_data[node]['x'] - csv_data[node2]['x'])**2
+                                    +(csv_data[node]['y'] - csv_data[node2]['y'])**2
                                     )
                 if (distance <= csv_data[node]['range']):
                     g.add_edge(node, node2)
@@ -159,7 +177,6 @@ def iot_graph(__csvfile__):
     for u in g.edge:
         for v in g.edge[u]:
             g.edge[u][v]['broadcast_information'] = None
-            
             
     return g
 ####################################################################################
@@ -194,10 +211,9 @@ def iot_graph_xyz(__csvfile__, range):
     for row in csv_reader:
         g.add_node(row['node_name'])
         csv_data[row['node_name']] = {}
-        csv_data[row['node_name']]['x'] = row['x']
-        csv_data[row['node_name']]['y'] = row['y']
-        csv_data[row['node_name']]['z'] = row['z']
-    #print row['node_name'] + ' ' + row['x'] + ' ' + row['y'] + ' ' + row['z']
+        csv_data[row['node_name']]['x'] = float(row['x'])
+        csv_data[row['node_name']]['y'] = float(row['y'])
+        csv_data[row['node_name']]['z'] = float(row['z'])
     
     csvfile.close()
     
@@ -206,14 +222,13 @@ def iot_graph_xyz(__csvfile__, range):
         for node2 in g.node:
             if node is not node2:
                 distance = math.sqrt(
-                                     (float(csv_data[node]['x']) - float(csv_data[node2]['x']))**2
-                                    +(float(csv_data[node]['y']) - float(csv_data[node2]['y']))**2
-                                    +(float(csv_data[node]['z']) - float(csv_data[node2]['y']))**2
+                                     (csv_data[node]['x'] - csv_data[node2]['x'])**2
+                                    +(csv_data[node]['y'] - csv_data[node2]['y'])**2
+                                    +(csv_data[node]['z'] - csv_data[node2]['z'])**2
                                     )
                 if (distance <= range):
                     g.add_edge(node, node2)
-    
-    
+                    
     for node in g.node:
         g.node[node]['online'] = True # Each node should be online at first
         g.node[node]['broadcast_delay'] = 0
@@ -268,14 +283,13 @@ Hook for creating a broadcast from a given node.
 '''
 ####################################################################################
 def create_broadcast(graph, node):
+    global current_broadcasts_sent
     for information in graph.node:
         if (graph.node[node]['has_' + information]):
-            print node + ': has_' + information ####################################!!
             if (will_broadcast(graph, node, information)):
+                current_broadcasts_sent[node] += 1 # << DATA COLLECTION
                 for edge_to in graph.edge[node]:
                     graph.edge[node][edge_to]['broadcast_information'] = information
-                    print node + ' to ' + edge_to + ' bears ' + information ########!!
-                    return
 ####################################################################################
 
 
@@ -283,18 +297,18 @@ def create_broadcast(graph, node):
 ####################################################################################
 '''
 Hook for determining whether or not a node will broadcast a given bit of information.
-   Args:
-      graph: A networkx graph instance.
-      node: A given node we are considering
-      information: The bit of information (origin node) that we are considering transmitting
+    Args:
+        graph: A networkx graph instance.
+        node: A given node we are considering
+        information: The bit of information (origin node) that we are considering transmitting
 '''
 ####################################################################################
 def will_broadcast(graph, node, information):
     for neighbor in helper.get_neighbors(graph, node):
         if not graph.node[neighbor]['has_' + information]:
             if neighbor in graph.edge[node]:
-                print node + ' will broadcast to its neighbors!' ###################!!
-                return True
+                return True # We only need ONE neighbor to not have the information
+                            # to transmit the information
     return False
 ####################################################################################
 
@@ -329,10 +343,8 @@ For every node, deal with the transmission of information.
                obviously, you can create some debug prints and toggle them as necessary.
 '''
 ####################################################################################
-def on_node(graph, graph_copy, node, max_weight, round_num, run_name, debug=False):
-    print 'entered on node ' + node
-
-    global last_update_round
+def on_node(graph, graph_copy, node, max_weight, round_num, run_name, max_receiving_transmissions=max_receiving_transmissions, debug=SIM_DEBUG):
+    global last_update_round, current_broadcasts_received_overall, current_broadcasts_received_successfully
     # Check that this node is online before continuing
     if not graph_copy.node[node]['online']:
         return
@@ -340,28 +352,28 @@ def on_node(graph, graph_copy, node, max_weight, round_num, run_name, debug=Fals
     # Get information about this node's neighbors
     neighbors_list = helper.get_unique_neighbors_list(graph_copy, node)
     
-    for ngb in neighbors_list:
-        if node in graph.edge[ngb]:
-            print ngb + ' to ' + node + ' inf: ' + graph.edge[ngb][node]['broadcast_information']##!!
-    
     
     # Figure out what transmissions are being broadcasted by neighbors
     transmission_list = []
     for neighbor in neighbors_list:
-        if (graph_copy.node[neighbor]['online'] and graph_copy.edge[neighbor][node]['broadcast_information'] is not None):
-            transmission_list.append(graph_copy.edge[neighbor][node]['broadcast_information'])
+        if node in graph_copy.edge[neighbor]:
+            if (graph_copy.node[neighbor]['online'] and graph_copy.edge[neighbor][node]['broadcast_information'] is not None):
+                current_broadcasts_received_overall[node] += 1 # << DATA COLLECTION
+                transmission_list.append(graph_copy.edge[neighbor][node]['broadcast_information'])
             
-    print transmission_list ########################################################!!
     # Can we make use of incoming transmissions, or are broadcasts interfering?
     if (len(transmission_list) <= max_receiving_transmissions): # We're fine
         for information in transmission_list:
+            current_broadcasts_received_successfully[node] += 1 # << DATA COLLECTION
             if not graph.node[node]['has_' + information]:
                 last_update_round = round_num
-                print node + ' receives ' + information ############################!!
-            graph.node[node]['has_' + information] = True
+                if (debug):
+                    print node + ' receives ' + information
+                graph.node[node]['has_' + information] = True
             
     else: # We have too many incoming transmissions
-        print 'There is a broadcast delay for conflicts with ' + node ##############!!
+        if (debug):
+            print 'Broadcast delay to all broadcasting neighbors of ' + node
         broadcast_delay(graph, graph_copy, node, neighbors_list)
 ####################################################################################
 
@@ -381,12 +393,14 @@ For every node, deal with the transmission of information.
 '''
 ####################################################################################
 def broadcast_delay(graph, graph_copy, node, neighbors_list):
+    global current_interference_failures
     neighbors_count = len(neighbors_list)
     for neighbor in neighbors_list:
-        if (graph_copy.edge[neighbor][node]['broadcast_information'] is not None and graph_copy.node[neighbor]['online']):
-            if (graph.node[neighbor]['broadcast_delay'] == 0):
-                graph.node[neighbor]['broadcast_delay'] = rand.randint(1, neighbors_count + rand_extra)
-                #graph.node[neighbor]['broadcast_delay'] = max(graph.node[neighbor]['broadcast_delay'], rand.randint(1, neighbors_count + rand_extra))
+        if node in graph.edge[neighbor]:
+            if (graph_copy.edge[neighbor][node]['broadcast_information'] is not None and graph_copy.node[neighbor]['online']):
+                if (graph.node[neighbor]['broadcast_delay'] == 0):
+                    current_interference_failures[neighbor] += 1
+                    graph.node[neighbor]['broadcast_delay'] = rand.randint(1, neighbors_count + rand_extra)
 ####################################################################################
 
 
@@ -468,8 +482,8 @@ Hook for finishing the simulation run on the current graph.
 '''
 ####################################################################################
 def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
-    global total_broadcasts_sent, total_broadcasts_received, total_interference_failures
-    global current_broadcasts_sent, current_broadcasts_received, current_interference_failures
+    global total_broadcasts_sent, total_broadcasts_received_successfully, total_broadcasts_received_overall, total_interference_failures
+    global current_broadcasts_sent, current_broadcasts_received_successfully, current_broadcasts_received_overall, current_interference_failures
     global last_update_round
     
     last_update_round = 0
@@ -483,12 +497,14 @@ def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
         print 'Graph finished. Summing results.'
     
     for node in graph.node:
-        total_broadcasts_sent[node] = current_broadcasts_sent[node]
-        total_broadcasts_received[node] = current_broadcasts_received[node]
-        total_interference_failures[node] = current_interference_failures[node]
+        total_broadcasts_sent[node] += current_broadcasts_sent[node]
+        total_broadcasts_received_successfully[node] += current_broadcasts_received_successfully[node]
+        total_broadcasts_received_overall[node] += current_broadcasts_received_overall[node]
+        total_interference_failures[node] += current_interference_failures[node]
     
     current_broadcasts_sent = {}
-    current_broadcasts_received = {}
+    current_broadcasts_received_successfully = {}
+    current_broadcasts_received_overall = {}
     current_interference_failures = {}
     
 ####################################################################################
