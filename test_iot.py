@@ -131,7 +131,7 @@ node does not recieve the broadcast.
 '''
 def test_cross_graph_center_edge_receives_four_transmissions():
     g = test_cross_graph()
-    
+    set_config_variable_dicts(g)
     # 'has_1' is odd in this context, but whatever
     g.node['2']['has_1'] = True
     g.node['3']['has_1'] = True
@@ -156,13 +156,28 @@ def test_cross_graph_center_edge_receives_four_transmissions():
     assert g.node['4']['broadcast_delay'] > 0
     assert g.node['5']['broadcast_delay'] > 0
     
-
+@pytest.fixture(scope='function')
+def set_config_variable_dicts(g):
+    for node in g.node:
+        # Total dictionaries
+        config.total_broadcasts_sent[node] = 0
+        config.total_broadcasts_received_successfully[node] = 0
+        config.total_broadcasts_received_overall[node] = 0
+        config.total_interference_failures[node] = 0
+        # Current dictionaries
+        config.current_broadcasts_sent[node] = 0
+        config.current_broadcasts_received_successfully[node] = 0
+        config.current_broadcasts_received_overall[node] = 0
+        config.current_interference_failures[node] = 0
+    
 '''
 Tests whether or not a graph will appropriately reset broadcast_information
 at the end of a round.
 '''
 def test_cross_graph_center_edge_spread():
     g = test_cross_graph()
+    set_config_variable_dicts(g)
+    
     g.node['1']['has_1'] = True
     
     config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
@@ -181,6 +196,8 @@ would happen in a simulation, given there are no conflicts.
 '''
 def test_cross_graph_center_information_spread():
     g = test_cross_graph()
+    set_config_variable_dicts(g)
+    
     g.node['1']['has_1'] = True
     
     config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')

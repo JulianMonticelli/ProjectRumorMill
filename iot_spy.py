@@ -110,7 +110,7 @@ def simulation_driver():
     mbcro = str(helper.get_max_in_dict(total_broadcasts_received_overall))
     mif = str(helper.get_max_in_dict(total_interference_failures))
     
-    print '>Max broadcasts sent:                     =' + mbcs + '\t(' + str(total_broadcasts_sent[mbcs]) + ')'
+    print '>Max broadcasts sent:                     = ' + mbcs + '\t(' + str(total_broadcasts_sent[mbcs]) + ')'
     print '>Max broadcasts received (successfully)   = ' + mbcrs + '\t(' + str(total_broadcasts_received_successfully[mbcrs]) + ')'
     print '>Max broadcasts received (overall)        = ' + mbcro + '\t(' + str(total_broadcasts_received_overall[mbcro]) + ')'
     print '>Max interference failures                = ' + mif + '\t(' + str(total_interference_failures[mif]) + ')'

@@ -4,7 +4,6 @@ import random as rand
 import sys
 import copy
 
-# Cyclical dependency to main
 import simengine as engine # < Driver in config requires this
 import simhelper as helper
 import simdefaults as defaults
@@ -323,7 +322,6 @@ food or water. If food and water are above a certain level, health regenerates a
 '''
 ####################################################################################
 def on_not_flagged(graph, graph_copy, node, max_weight, run_name):
-
     # Are we dead? If so, return
     if (is_dead(graph, node)):
         return
@@ -332,24 +330,24 @@ def on_not_flagged(graph, graph_copy, node, max_weight, run_name):
     if (helper.chance(find_food_chance)):
         handle_find_food(graph, node)
 
-   # Leader nodes and non-leader nodes think differently
-   if not node == leader_node:
-      for neighbor in nx.all_neighbors(graph, node):
-         if not graph.node[neighbor]['infected']:
-            human_human_interaction(graph, node, neighbor, max_weight, run_name)
-            # If ever our currently considered node is dead, return
-            if (is_dead(graph, node)):
-               return
+    # Leader nodes and non-leader nodes think differently
+    if not node == leader_node:
+        for neighbor in nx.all_neighbors(graph, node):
+            if not graph.node[neighbor]['infected']:
+                human_human_interaction(graph, node, neighbor, max_weight, run_name)
+                # If ever our currently considered node is dead, return
+                if (is_dead(graph, node)):
+                    return
 
-   elif node == leader_node:
-      print 'detected leader node!!!' 
-      handle_leader_node(graph, node)
+    elif node == leader_node:
+        print 'detected leader node!!!' 
+        handle_leader_node(graph, node)
 
         # Do something with the neighbor? Could help or harm
 
         # Make sure the player is still alive
         if (is_dead(graph, node)):
-            return
+                return
 
     # Heal damage
     node_health = graph.node[node]['health']
@@ -664,9 +662,13 @@ def after_round_end(graph, add_edge_list, remove_edge_list, add_node_list, remov
         if (graph.node[node]['food'] <= 0):
             is_starving = True
             graph.node[node]['health'] -= starvation_damage
+            graph.node[node]['food'] = 0 # Since we don't want negative food values
+            
         if (graph.node[node]['water'] <= 0):
             is_dehydrated = True
             graph.node[node]['health'] -= dehydration_damage
+            graph.node[node]['water'] = 0 # Since we don't want negative water values
+            
         if (is_dead(graph, node)):
             helper.add_node_to_list(remove_node_list, node)
             if (DEBUG_STORY):
@@ -792,7 +794,7 @@ def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
         humans_left_min = min(humans_left, humans_left_min)
         humans_left_max = max(humans_left, humans_left_max)
     elif(finish_code == 3):
-        print run_tag + 'Somehow, there was nothing left (starvation might have gotten all zombies and humans!)'
+        print run_tag + 'Somehow, there was nothing left (starvation may have gotten all humans and zombies died from defense or starvation!)'
         no_survivors += 1
 
     print '\n\n'
