@@ -256,3 +256,37 @@ def test_exceeded_round_limit():
     assert helper.exceeded_round_limit(102,101) == True
     assert helper.exceeded_round_limit(-1, -2) == True # odd, but should still exceed
     assert helper.exceeded_round_limit(1,2) == False
+    
+@pytest.fixture(scope='function')
+def setup_cross_graph():
+    # This graph setup comes directly from IOT file
+    # because this is where I needed to implement this.
+    g = nx.Graph()
+    # Add five nodes
+    g.add_node('1')
+    g.add_node('2')
+    g.add_node('3')
+    g.add_node('4')
+    g.add_node('5')
+    
+    # Add edges to make the graph a cross graph
+    g.add_edge('1', '2')
+    g.add_edge('1', '3')
+    g.add_edge('1', '4')
+    g.add_edge('1', '5')
+    return g
+    
+# Test that unique neighbor list is actually a unique neighbor list
+# and is also less in cardnality than the normal neighbor list
+def test_unique_neighbor_list_digraph():
+    g = setup_cross_graph()
+    g = helper.to_directed(g)
+    nlist_nonunique = helper.get_neighbors_list(g, '1')
+    assert len(nlist_nonunique) == 8
+    nlist_unique = helper.get_unique_neighbors_list(g, '1')
+    assert len(nlist_unique) == 4
+    
+    
+def test_max_betweenness_on_crossgraph():
+    g = setup_cross_graph()
+    assert (helper.get_max_betweenness_node(g) == '1')

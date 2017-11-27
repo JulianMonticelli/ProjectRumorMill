@@ -57,7 +57,7 @@ Hook for considering a node in the graph.
       run_name: The name of the current run
 '''
 ####################################################################################
-def on_node(graph, graph_copy, node, max_weight, run_name):
+def on_node(graph, graph_copy, node, max_weight, round_num, run_name):
 
    # Example branching - branch functions depending on a flag condition
 
@@ -159,7 +159,7 @@ Hook for changing the graph at the beginning of the round. Note that this takes 
       run_name: The name of the current run 
 '''
 ####################################################################################
-def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name):
+def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
    #for edge in graph.edge:
       # do something
    return
@@ -220,7 +220,7 @@ Hook for considering a node in the graph.
       run_name: The name of the current run
 '''
 ####################################################################################
-def after_round_end(graph, add_node_list, remove_node_list, run_name):
+def after_round_end(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
    given_flags = 0
    removed_flags = 0
    
@@ -330,7 +330,7 @@ simulation is still running and NOT stuck somewhere in an infinite loop.
         run_name: The name of the current run.
 '''
 ####################################################################################
-def heartbeat(current_time, last_heartbeat, run_name):
+def heartbeat(current_time, last_heartbeat, round_num, run_name):
    print '[' + str(current_time) + ']: ' + str(run_name) + ' still alive. Last update was ' \
          + str(last_heartbeat) + ' seconds ago.'
 ####################################################################################

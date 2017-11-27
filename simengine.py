@@ -12,12 +12,6 @@
 # Julian Monticelli
 #######################
 
-###############
-# Important!! #
-# Whitespace! #
-# -> 3 spaces #
-###############
-
 
 import argparse         # Parse command line args
 import copy             # For copying graphs
@@ -49,10 +43,10 @@ def main():
 ####################################################################################
 '''
 Simulation function - to be changed and altered. Highly volatile.
-   Args:
-      graph: A networkx graph instance.
-      num_simulations: An integer indicating how many time we want to run in this execution.
-      sim_name: A string that describes the current simulation
+    Args:
+        graph: A networkx graph instance.
+        num_simulations: An integer indicating how many time we want to run in this execution.
+        sim_name: A string that describes the current simulation
 '''
 ####################################################################################
 def simulate(graph, num_simulations, sim_name):
@@ -71,11 +65,11 @@ def simulate(graph, num_simulations, sim_name):
 ####################################################################################
 '''
 A single run of a simulation.
-   Args:
-      graph: A networkx graph instance.
-      max_weight: An integer which is the max weight of edges in this graph.
-      max_allowed_rounds: An integer which is set to be the max allowed number of rounds.
-      run_name: The name of the run
+    Args:
+        graph: A networkx graph instance.
+        max_weight: An integer which is the max weight of edges in this graph.
+        max_allowed_rounds: An integer which is set to be the max allowed number of rounds.
+        run_name: The name of the run
 '''
 ####################################################################################
 def run(graph, max_weight, max_allowed_rounds, run_name):
@@ -98,10 +92,10 @@ def run(graph, max_weight, max_allowed_rounds, run_name):
         last_heartbeat = helper.time_diff(now, last_timestamp)
         if (last_heartbeat >= config.heartbeat_interval):
             last_timestamp = now
-            config.heartbeat(now, last_heartbeat, run_name)
+            config.heartbeat(now, last_heartbeat, round_num, run_name)
         
 	  # Run the round
-        round(graph, max_weight, run_name)
+        round(graph, max_weight, round_num, run_name)
 
     # Check why we quit the simulation
     finish_code = config.finished_hook(graph, round_num, max_allowed_rounds, run_name)
@@ -118,43 +112,54 @@ def run(graph, max_weight, max_allowed_rounds, run_name):
 ####################################################################################
 '''
 A step in the simulation.
-   Args:
-      graph: A networkx graph instance.
-      max_weight: An integer which is the max weight of edges in this graph.
-      run_name: The name of the run
+    Args:
+        graph: A networkx graph instance.
+        max_weight: An integer which is the max weight of edges in this graph.
+        run_name: The name of the run
 '''
 ####################################################################################
-def round(graph, max_weight, run_name):
+def round(graph, max_weight, round_num, run_name):
     # Declare empty list for graph changes
     add_node_list = []
     remove_node_list = []
     add_edge_list = []
     remove_edge_list = []
 
-    # Deal with potential before-round graph changes (edge addition/removals)
-    config.before_round_start(graph, max_weight, add_edge_list, remove_edge_list, run_name)
+    #
+    # WARNING: Notice that before_round_start HAS max_weight as an argument
+    # and after_round_end does not. This may need to be changed at a later
+    # date.
+    #
+    
+    # Deal with potential before-round graph changes 
+    config.before_round_start(graph, max_weight, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name)
 
     # Perform graph changes, if there are any
-    helper.modify_graph_edges(graph, add_edge_list, remove_edge_list)
+    helper.modify_graph(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list)
 
     # Fix edge attributes as config deems necessary
-    config.post_edge_modification(graph, add_edge_list, run_name)
+    config.post_graph_modification(graph, add_edge_list, add_node_list, run_name)
+    
+    add_node_list = []
+    remove_node_list = []
+    add_edge_list = []
+    remove_edge_list = []
 
     # Deep copy graph after pre-round graph changes
     graph_copy = helper.copy_graph(graph)
 
     for node in nx.nodes(graph):
-        config.on_node(graph, graph_copy, node, max_weight, run_name)
+        config.on_node(graph, graph_copy, node, max_weight, round_num, run_name)
 
-    # Deal with potential post-round graph changes (node addition/removals)
-    config.after_round_end(graph, add_node_list, remove_node_list, run_name)
+    # Deal with potential post-round graph changes 
+    config.after_round_end(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name)
 
     # Fix node attributes as config deems necessary
     # Also, any reconsiderations 
-    config.post_node_modification(graph, add_node_list, run_name)
+    config.post_graph_modification(graph, add_edge_list, add_node_list, run_name)
 
     # Perform graph changes, if there are any
-    helper.modify_graph_nodes(graph, add_node_list, remove_node_list)
+    helper.modify_graph(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list)
 ####################################################################################
 
 

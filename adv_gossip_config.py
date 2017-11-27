@@ -284,7 +284,7 @@ simulation is still running and NOT stuck somewhere in an infinite loop.
         run_name: The name of the current run.
 '''
 ####################################################################################
-def heartbeat(current_time, last_heartbeat, run_name):
+def heartbeat(current_time, last_heartbeat, round_num, run_name):
    print '[' + str(current_time) + ']: ' + str(run_name) + ' still alive. Last update was ' \
          + str(last_heartbeat) + ' seconds ago.'
 ####################################################################################
