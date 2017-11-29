@@ -470,7 +470,7 @@ Hook for finishing the simulation run on the current graph.
       run_name: The name of the current simulation run
 '''
 ####################################################################################
-def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
+def on_finished_run(graph, finish_code, round_num, run_name, total_time_seconds):
    global num_given
    global num_forgot
    global total_simulations

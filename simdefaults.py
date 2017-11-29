@@ -13,4 +13,9 @@ debug_chance_warnings_traceback = True
 
 
 
+# Aesthetic-related flags
+display_banner = True
+pause_after_display = True
+pause_sleep_time_ms = 1000
+
 asterisk_space_count = 35

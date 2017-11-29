@@ -655,6 +655,28 @@ def exceeded_round_no_update_limit(last_update_round, curr_round, max_rounds_no_
 
 ####################################################################################
 '''
+Returns whether or not a simulation should end given based on whether or not it has
+exceeded a density limit.
+
+    Args:
+        last_update_round: The last round in which the graph updated
+        curr_round: The current round of a simulation
+        max_rounds_no_update: Maximum number of rounds a simulation is allowed to go
+                              on without an update.
+
+    Returns:
+        True if a simulation has exceeded the maximum number of rounds
+        False if a simulation has not exceeded the maximum number of rounds
+'''
+####################################################################################
+def exceeded_density_limit(graph, density_limit):
+    return (nx.density(graph) > density_limit)
+####################################################################################
+
+
+
+####################################################################################
+'''
 Returns a deep copy of a graph provided to the function
     Args:
         graph: The graph that shall be copied
@@ -984,6 +1006,86 @@ def get_unique_neighbors_list(g, node):
         if n not in unique_list:
             unique_list.append(n)
     return unique_list
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns a list of data from a file.
+    Args:
+        file: The file which we will read through
+        n: The amount of lines we are to read
+        line_limit: The limit of lines to read (an optional field to prevent reading
+                    more than a given amount of lines)
+        
+    Returns:
+        A list of male names of size n.
+'''
+####################################################################################
+def get_list_from_file(file, n, line_limit=0):
+    if (line_limit > 0):
+        if (n > line_limit):
+            n = line_limit
+    _list = []
+    i = 0
+    for line in file:
+        i += 1
+        if (i <= n):
+            _list.append(line.strip())
+    file.close()
+    return _list
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns a list of male names from the top n common first names for males.
+    Args:
+        number_of_results: The number of results to be returned (at MOST 1000)
+        
+    Returns:
+        A list of male names of size n.
+'''
+####################################################################################
+def get_list_of_male_names(number_of_results):
+    mf = open('assets/male_names.txt', 'r')
+    return get_list_from_file(mf, number_of_results, line_limit=1000)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns a list of male names from the top n common first names for males.
+    Args:
+        number_of_results: The number of results to be returned (at MOST 1000)
+        
+    Returns:
+        A list of male names of size n.
+'''
+####################################################################################
+def get_list_of_female_names(number_of_results):
+    ff = open('assets/female_names.txt', 'r')
+    return get_list_from_file(ff, number_of_results, line_limit=1000)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns a list of male names from the top n common first names for males.
+    Args:
+        number_of_results: The number of results to be returned (at MOST 1000)
+        
+    Returns:
+        A list of male names of size n.
+'''
+####################################################################################
+def get_list_of_last_names(number_of_results):
+    lnf = open('assets/last_names.txt', 'r')
+    return get_list_from_file(lnf, number_of_results, line_limit=1000)
 ####################################################################################
 
 

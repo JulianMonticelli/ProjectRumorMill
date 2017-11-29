@@ -255,7 +255,33 @@ def test_exceeded_round_limit():
     assert helper.exceeded_round_limit(101,101) == False
     assert helper.exceeded_round_limit(102,101) == True
     assert helper.exceeded_round_limit(-1, -2) == True # odd, but should still exceed
-    assert helper.exceeded_round_limit(1,2) == False
+    assert helper.exceeded_round_limit(1, 2) == False
+    
+def test_exceeded_round_no_update_limit():
+    assert not helper.exceeded_round_no_update_limit(1, 2, 2)
+    assert not helper.exceeded_round_no_update_limit(1, 3, 2)
+    assert helper.exceeded_round_no_update_limit(1, 3, 1)
+    
+def test_exceeded_density_limit():
+    # Simple undirected graph density is calculated by
+    # D = 2|E| / |V|(|V|-1)
+    # So, a graph with 4 edges and 4 nodes should return 0.6 repeated density
+    g = nx.Graph()
+    
+    # Add vertices and edges 
+    for v in range(4):
+        g.add_node(str(v+1))
+        
+    assert len(g.node) == 4
+    
+    for e in range(4):
+        g.add_edge(str(e+1), str(max((e+2)%4, 1)))
+    assert len(g.edge) == 4
+    
+    assert not helper.exceeded_density_limit(g, 1.0)
+    assert not helper.exceeded_density_limit(g, 0.67)
+    assert helper.exceeded_density_limit(g, 0.66)
+    assert helper.exceeded_density_limit(g, 0.01)
     
 @pytest.fixture(scope='function')
 def setup_cross_graph():

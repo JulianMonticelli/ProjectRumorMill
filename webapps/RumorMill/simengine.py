@@ -111,7 +111,7 @@ def run(graph, max_weight, max_allowed_rounds, run_name):
    total_time_seconds = helper.time_diff(start_timestamp, helper.date_time())
 
    # Pass along relevant information to the on_finished hook
-   config.on_finished(graph, finish_code, round_num, run_name, total_time_seconds)
+   config.on_finished_run(graph, finish_code, round_num, run_name, total_time_seconds)
 ####################################################################################
 
 
