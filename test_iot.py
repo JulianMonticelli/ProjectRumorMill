@@ -105,7 +105,7 @@ def test_graph_finished():
         for node2 in g.node:
             g.node[node]['has_' + node2] = True
             
-    assert config.finished_hook(g, 0, 0, 'run_name') == 1
+    assert config.finished_hook(g, 0, 'run_name') == 1
     
     
 '''
@@ -116,7 +116,7 @@ def test_cross_graph_center_edge_spread():
     g = test_cross_graph()
     g.node['1']['has_1'] = True
     
-    config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
+    config.before_round_start(g, [], [], [], [], 0, 'run_name')
     
     assert(len(g.edge['1']) == 4)
     
@@ -138,12 +138,12 @@ def test_cross_graph_center_edge_receives_four_transmissions():
     g.node['4']['has_1'] = True
     g.node['5']['has_1'] = True
     
-    config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
+    config.before_round_start(g, [], [], [], [], 0, 'run_name')
 
     gc = helper.copy_graph(g)
     
     for node in g:
-        config.on_node(g, gc, node, float('-inf'), 0, 'run_name')
+        config.on_node(g, gc, node, 0, 'run_name')
         
     assert(len(g.edge['1']) == 4)
     
@@ -180,7 +180,7 @@ def test_cross_graph_center_edge_spread():
     
     g.node['1']['has_1'] = True
     
-    config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
+    config.before_round_start(g, [], [], [], [], 0, 'run_name')
     
     assert(len(g.edge['1']) == 4)
     
@@ -200,12 +200,12 @@ def test_cross_graph_center_information_spread():
     
     g.node['1']['has_1'] = True
     
-    config.before_round_start(g, 0, [], [], [], [], 0, 'run_name')
+    config.before_round_start(g, [], [], [], [], 0, 'run_name')
     
     gc = helper.copy_graph(g)
     
     for node in g:
-        config.on_node(g, gc, node, float('-inf'), 0, 'run_name')
+        config.on_node(g, gc, node, 0, 'run_name')
         
     for node in g:
         assert(g.node[node]['has_1'])

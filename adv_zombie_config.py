@@ -15,6 +15,8 @@ import simdefaults as defaults
 IS_SIM_GAME = True
 DEBUG_STORY = True
 
+max_weight = 10 # 10 is the maximum weight of the given graph, this can be modified
+
 leader_node = 0
 
 heartbeat_interval = 30 # 30 second heartbeat interval
@@ -258,18 +260,18 @@ Hook for considering a node in the graph.
         graph: A networkx graph instance.
         graph_copy: Another networkx graph instance which is the deep copy of graph.
         node: A networkx node instance.
-        max_weight: An integer which is the max weight of edges in this graph.
+        round_num: The number of the current round
         run_name: The name of the current run
 '''
 ####################################################################################
-def on_node(graph, graph_copy, node, max_weight, round_num, run_name):
+def on_node(graph, graph_copy, node, round_num, run_name):
 
     if (graph_copy.node[node]['infected']):
-        on_flagged(graph, graph_copy, node, max_weight, run_name)
+        on_flagged(graph, graph_copy, node, run_name)
 
         # If the node does not know, and we can spontaneously come into knowing
     else:
-        on_not_flagged(graph, graph_copy, node, max_weight, run_name)
+        on_not_flagged(graph, graph_copy, node, run_name)
 ####################################################################################
 
 
@@ -281,7 +283,6 @@ Runs operations on a flagged node to determine if it will transmit information.
         graph: A networkx graph instance.
         graph_copy: Another networkx graph instance which is the deep copy of graph.
         node: A networkx node instance.
-        max_weight: An integer which is the max weight of edges in this graph.
         run_name: The name of the current run
 
     Returns:
@@ -289,7 +290,7 @@ Runs operations on a flagged node to determine if it will transmit information.
         given_flags: An integer showing how many nodes are flagged in this node operation.
 '''
 ####################################################################################
-def on_flagged(graph, graph_copy, node, max_weight, run_name):
+def on_flagged(graph, graph_copy, node, run_name):
     
     # Check the unedited copy graph for flagged neighbors
     for neighbor in graph_copy.edge[node]:
@@ -301,7 +302,7 @@ def on_flagged(graph, graph_copy, node, max_weight, run_name):
         if (not graph_copy.node[neighbor]['infected'] and not graph.node[neighbor]['infected']):
             
             # If the neighbor will be infected, then infect the neighbor
-            if (will_spread(node, neighbor, graph, max_weight, run_name)):
+            if (will_spread(node, neighbor, graph, run_name)):
                 if (DEBUG_STORY):
                     print zombie_human_tag + node + ' has infected ' + neighbor + ', who is now a zombie.'
                 graph.node[neighbor]['infected'] = True
@@ -317,11 +318,10 @@ food or water. If food and water are above a certain level, health regenerates a
         graph: A networkx graph instance.
         graph_copy: Another networkx graph instance which is the deep copy of graph.
         node: A networkx node instance.
-        max_weight: The maximum weight of the graph
         run_name: The name of the current method
 '''
 ####################################################################################
-def on_not_flagged(graph, graph_copy, node, max_weight, run_name):
+def on_not_flagged(graph, graph_copy, node, run_name):
     # Are we dead? If so, return
     if (is_dead(graph, node)):
         return
@@ -334,7 +334,7 @@ def on_not_flagged(graph, graph_copy, node, max_weight, run_name):
     if not node == leader_node:
         for neighbor in nx.all_neighbors(graph, node):
             if not graph.node[neighbor]['infected']:
-                human_human_interaction(graph, node, neighbor, max_weight, run_name)
+                human_human_interaction(graph, node, neighbor, run_name)
                 # If ever our currently considered node is dead, return
                 if (is_dead(graph, node)):
                     return
@@ -387,11 +387,10 @@ Method that deals with the interaction between humans.
           graph: A networkx graph instance
           source: A source node
           dest: A dest node
-          max_weight: The maximum weight of the graph
           run_name: The name of the run
 '''
 ####################################################################################
-def human_human_interaction(graph, source, dest, max_weight, run_name):
+def human_human_interaction(graph, source, dest, run_name):
     edge_weight = graph.edge[source][dest]['weight']
     # Does anything happen at all?
     if ( helper.roll_weight( edge_weight, max_weight ) ):
@@ -411,7 +410,16 @@ def human_human_interaction(graph, source, dest, max_weight, run_name):
 
 
 ####################################################################################
-
+'''
+Checks if a given node is dead.
+    Args:
+        graph: The networkx graph instance.
+        node: The node in question
+        
+    Returns:
+        True if the node is dead (health of node 0 or less)
+        False if the node is alive (health of node > 0)
+'''
 ####################################################################################
 def is_dead(graph, node):
     return graph.node[node]['health'] <= 0
@@ -420,9 +428,15 @@ def is_dead(graph, node):
 
 
 ####################################################################################
-
+'''
+Handles a leader node (which should be a human node).
+    Args:
+        graph: A networkx graph instance.
+        leader: The leader node
+        run_name: The name of the current simulation run.
+'''
 ####################################################################################
-def handle_leader_node(graph, leader, max_weight, run_name):
+def handle_leader_node(graph, leader, run_name):
     for neighbor in nx.all_neighbors(graph, leader):
         edge_weight = graph.edge[leader][neighbor]['weight']
 	  
@@ -503,7 +517,6 @@ by a failed or successful transmission.
       source: A networkx node instance which is the source node in this transmission.
       dest: Another networkx node instance which is the destination node in this transmission.
       graph: A networkx graph instance.
-      max_weight: An integer which is the max weight of edges in this graph.
       run_name: The name of the current run
 
    Returns:
@@ -511,7 +524,7 @@ by a failed or successful transmission.
       False: If the information isn't spread in this node operation.
 '''
 ####################################################################################
-def will_spread(source, dest, graph, max_weight, run_name):
+def will_spread(source, dest, graph, run_name):
     # TODO: Add more dynamic way to spread flags from nodes to nodes
     
     # Get current weight
@@ -579,11 +592,15 @@ def will_spread(source, dest, graph, max_weight, run_name):
 Hook for changing the graph at the beginning of the round. Note that this takes place before the graph is copied in the engine.
     Args:
         graph: A networkx graph instance.
-        max_weight: An integer which is the max weight of edges in this graph.
+        add_edge_list: A list for adding new edges from the graph
+        remove_edge_list: A list for removing edges from the graph
+        add_node_list: A list for adding new nodes to the graph
+        remove_node_list: A list for removing nodes from the graph
+        round_num: The number of the current round
         run_name: The name of the current run 
 '''
 ####################################################################################
-def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
+def before_round_start(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
     leader_node = helper.get_max_betweenness_node(graph)
     for node in graph.node:
         for neighbor in nx.all_neighbors(graph, node):
@@ -630,7 +647,7 @@ Hook for fixing edge attributes to freshly added edges and nodes.
 ####################################################################################
 def post_graph_modification(graph, add_edge_list, add_node_list, run_name):
      for u,v in add_edge_list:
-          helper.randomize_edge_list_attribute(graph, add_edge_list, 'weight', 1, 10)
+          helper.randomize_edge_list_attribute(graph, add_edge_list, 'weight', 1, max_weight)
 ####################################################################################
 
 
@@ -722,7 +739,6 @@ Determines whether or not a graph is finished.
     Args:
         graph: A networkx graph instance.
         current_round: An integer recording the current number of rounds.
-        max_allowed_rounds: An integer which is set to be the max allowed number of rounds.
         run_name: The name of the current simulation run
 	  
     Returns:
@@ -733,12 +749,12 @@ Determines whether or not a graph is finished.
         3: If nothing is left
 '''
 ####################################################################################
-def finished_hook(graph, current_round, max_allowed_rounds, run_name):
+def finished_hook(graph, current_round, run_name):
     # Get all attributes and store them in a dictionary
     dict = nx.get_node_attributes(graph, 'infected')
     
     # Make sure we haven't hit the maximum allowed round
-    if (current_round > max_allowed_rounds):
+    if (current_round > maximum_allowed_simulation_rounds):
         return -1 # -1 means we ran out of allowed rounds
     
 
@@ -767,7 +783,7 @@ Hook for finishing the simulation run on the current graph.
         run_name: The name of the current simulation run
 '''
 ####################################################################################
-def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
+def on_finished_run(graph, finish_code, round_num, run_name, total_time_seconds):
     global total_simulations
     global zombies_won, humans_won, no_survivors, num_failed
     global humans_left_total, humans_left_min, humans_left_max
@@ -798,6 +814,23 @@ def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
         no_survivors += 1
 
     print '\n\n'
+####################################################################################
+
+
+
+####################################################################################
+'''
+Hook for dealing with data across a simulation on the given graph. Specifically, this
+was designed for dealing with looking at differences across the whole simulation.
+    Args:
+        num_runs: The number of runs in a given simulation.
+        graphs: A list of graphs which correspond to the finished graph for each run
+                in the simulation.
+        sim_name: The name of the simulation.
+'''
+####################################################################################
+def on_finished_simulation(num_runs, graphs, sim_name):
+    pass
 ####################################################################################
 
 

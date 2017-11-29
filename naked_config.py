@@ -12,6 +12,7 @@ import simdefaults as defaults
 #######################
 heartbeat_interval = 30 # 30 second heartbeat interval
 maximum_allowed_simulation_rounds = 100 # Max amount of rounds before we stop running a simulation
+max_weight = 0 # Maximum weight is set in simulation driver
 num_runs = 3      # Default number of runs per simulation
 
 #######################
@@ -27,9 +28,10 @@ A logically sound place to put data processing is at the end of this method.
 '''
 ####################################################################################
 def simulation_driver():
-   
+   global max_weight
    # Read in a graph
    graph = nx.read_graphml('simplemodel.graphml')
+   max_weight = helper.max_weight(graph)
    helper.output_graph_information(graph)
 
    
@@ -53,17 +55,16 @@ Hook for considering a node in the graph.
       graph: A networkx graph instance.
       graph_copy: Another networkx graph instance which is the deep copy of graph.
       node: A networkx node instance.
-      max_weight: An integer which is the max weight of edges in this graph.
       run_name: The name of the current run
 '''
 ####################################################################################
-def on_node(graph, graph_copy, node, max_weight, round_num, run_name):
+def on_node(graph, graph_copy, node, round_num, run_name):
 
    # Example branching - branch functions depending on a flag condition
 
    # If node is flagged
    if (graph_copy.node[node]['flagged']):
-      on_flagged(graph, graph_copy, node, max_weight, run_name)
+      on_flagged(graph, graph_copy, node, run_name)
 
    # If the node is not flagged
    else:
@@ -79,11 +80,10 @@ Runs operations on a flagged node to determine if it will transmit a flag.
       graph: A networkx graph instance.
       graph_copy: Another networkx graph instance which is the deep copy of graph.
       node: A networkx node instance.
-      max_weight: An integer which is the max weight of edges in this graph.
       run_name: The name of the current run
 '''
 ####################################################################################
-def on_flagged(graph, graph_copy, node, max_weight, run_name):
+def on_flagged(graph, graph_copy, node, run_name):
    given_flags = 0
    
    # Check the unedited copy graph for flagged neighbors
@@ -93,7 +93,7 @@ def on_flagged(graph, graph_copy, node, max_weight, run_name):
       if (not graph_copy.node[neighbor]['flagged'] and not graph.node[neighbor]['flagged']):
          
          # If the simulation will actually spread, then spread
-         if (will_spread(node, neighbor, graph, max_weight, run_name)):
+         if (will_spread(node, neighbor, graph, run_name)):
             graph.node[neighbor]['flagged'] = True			
 ####################################################################################
 
@@ -126,7 +126,6 @@ Determine if a given source node will transmit a flag to a given node.
       source: A networkx node instance which is the source node in this transmission.
       dest: Another networkx node instance which is the destination node in this transmission.
       graph: A networkx graph instance.
-      max_weight: An integer which is the max weight of edges in this graph.
       run_name: The name of the current run
 
    Returns:
@@ -134,7 +133,7 @@ Determine if a given source node will transmit a flag to a given node.
       False: If the flag isn't spread in this node operation.
 '''
 ####################################################################################
-def will_spread(source, dest, graph, max_weight, run_name):
+def will_spread(source, dest, graph, run_name):
    # TODO: Add more dynamic way to spread flags from nodes to nodes
    
    # Get current weight
@@ -153,13 +152,17 @@ def will_spread(source, dest, graph, max_weight, run_name):
 ####################################################################################
 '''
 Hook for changing the graph at the beginning of the round. Note that this takes place before the graph is copied in the engine.
-   Args:
-      graph: A networkx graph instance.
-      max_weight: An integer which is the max weight of edges in this graph.
-      run_name: The name of the current run 
+    Args:
+        graph: A networkx graph instance.
+        add_edge_list: A list for adding new edges from the graph
+        remove_edge_list: A list for removing edges from the graph
+        add_node_list: A list for adding new nodes to the graph
+        remove_node_list: A list for removing nodes from the graph
+        round_num: The number of the current round
+        run_name: The name of the current run 
 '''
 ####################################################################################
-def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
+def before_round_start(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
    #for edge in graph.edge:
       # do something
    return
@@ -211,13 +214,13 @@ def post_node_modification(graph, add_node_list, run_name):
 ####################################################################################
 '''
 Hook for considering a node in the graph.
-   Args:
-      graph: A networkx graph instance.
+    Args:
+        graph: A networkx graph instance.
 
-   Returns:
-      given_flags: An integer showing how many nodes are flagged in this round.
-      removed_flags: An integer showing how many nodes are unflagged in this round.
-      run_name: The name of the current run
+    Returns:
+        given_flags: An integer showing how many nodes are flagged in this round.
+        removed_flags: An integer showing how many nodes are unflagged in this round.
+        run_name: The name of the current run
 '''
 ####################################################################################
 def after_round_end(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
@@ -237,10 +240,10 @@ def after_round_end(graph, add_edge_list, remove_edge_list, add_node_list, remov
 Initialize the graph with attributes that are necessary to run a simulation.
 Takes a graph and a String node (i.e., 'n10') to initialize as flagged.
 Also initializes uninitialized weights on graphs as 1.
-   Args:
-      graph: A networkx graph instance.
-      node: A networkx node instance.
-      sim_name: The name of the current simulation
+    Args:
+        graph: A networkx graph instance.
+        node: A networkx node instance.
+        sim_name: The name of the current simulation
 '''
 ####################################################################################
 def init(graph, node, sim_name):
@@ -270,24 +273,23 @@ def init(graph, node, sim_name):
 ####################################################################################
 '''
 Determines whether or not a graph is finished.
-   Args:
-      graph: A networkx graph instance.
-      current_round: An integer recording the current number of rounds.
-      max_allowed_rounds: An integer which is set to be the max allowed number of rounds.
-      run_name: The name of the current simulation run
+    Args:
+        graph: A networkx graph instance.
+        current_round: An integer recording the current number of rounds.
+        run_name: The name of the current simulation run
 	  
-   Returns:
-      0: If we fail to finish this graph simulation run.
-      1: If we succeed to finish this graph simulation run.
-      -1: If the current round number exceeds the max allowed number.
+    Returns:
+        0: If we fail to finish this graph simulation run.
+        1: If we succeed to finish this graph simulation run.
+       -1: If the current round number exceeds the max allowed number.
 '''
 ####################################################################################
-def finished_hook(graph, current_round, max_allowed_rounds, run_name):
+def finished_hook(graph, current_round, run_name):
    # Get all attributes and store them in a dictionary
    dict = nx.get_node_attributes(graph, 'flagged')
    
    # Make sure we haven't hit the maximum allowed round
-   if (helper.exceeded_round_limit(current_round, max_allowed_rounds)):
+   if (helper.exceeded_round_limit(current_round, maximum_allowed_simulation_rounds)):
       return -1 # -1 means we ran out of allowed rounds
    
 
@@ -307,14 +309,14 @@ def finished_hook(graph, current_round, max_allowed_rounds, run_name):
 ####################################################################################
 '''
 Hook for finishing the simulation run on the current graph.
-   Args:
-      finish_code: 0 or 1 or -1 depend on the finish code we return in finished_hook function.
-      round_num: An integer showing how many round we use to finish the graph if succeed.
-      num_flags: An integer showing how many nodes are flagged in the end.
-      run_name: The name of the current simulation run
+    Args:
+        finish_code: 0 or 1 or -1 depend on the finish code we return in finished_hook function.
+        round_num: An integer showing how many round we use to finish the graph if succeed.
+        num_flags: An integer showing how many nodes are flagged in the end.
+        run_name: The name of the current simulation run
 '''
 ####################################################################################
-def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
+def on_finished_run(graph, finish_code, round_num, run_name, total_time_seconds):
    print 'Finished ' + run_name + ' - you should do something with this!'
 ####################################################################################
 

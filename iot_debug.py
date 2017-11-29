@@ -52,7 +52,7 @@ g.node['3']['has_1'] = True
 g.node['4']['has_1'] = True
 g.node['5']['has_1'] = True
 
-config.before_round_start(g, 0, [], [], 'run_name')
+config.before_round_start(g, [], [], [], [], 'run_name')
 
 gc = helper.copy_graph(g)
 

@@ -150,7 +150,6 @@ def iot_graph(__csvfile__):
         csv_data[row['node_name']]['x']     = float(row['x'])
         csv_data[row['node_name']]['y']     = float(row['y'])
         csv_data[row['node_name']]['range'] = float(row['range'])
-        print row['node_name'] + ' ' + row['x'] + ' ' + row['y'] + ' ' + row['range']
     
     csvfile.close()
     
@@ -255,7 +254,6 @@ Hook for changing the graph at the beginning of the round. Note that this takes 
 before the graph is copied in the engine.
     Args:
         graph: A networkx graph instance.
-        max_weight: An integer which is the max weight of edges in this graph.
         add_edge_list: A list for adding new edges from the graph
         remove_edge_list: A list for removing edges from the graph
         add_node_list: A list for adding new nodes to the graph
@@ -264,7 +262,7 @@ before the graph is copied in the engine.
         run_name: The name of the current run 
 '''
 ####################################################################################
-def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
+def before_round_start(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
     for node in graph.node:
         if (graph.node[node]['broadcast_delay'] <= 0): # <= for safety (although it shouldn't matter)
             create_broadcast(graph, node)
@@ -336,14 +334,13 @@ For every node, deal with the transmission of information.
         graph: A networkx graph instance.
         graph_copy: Another networkx graph instance which is the deep copy of graph.
         node: A networkx node instance.
-        max_weight: An integer which is the max weight of edges in this graph.
         round_num: The current round number
         run_name: The name of the current run
         debug: An optional variable that defaults to false. If debugging is required,
                obviously, you can create some debug prints and toggle them as necessary.
 '''
 ####################################################################################
-def on_node(graph, graph_copy, node, max_weight, round_num, run_name, max_receiving_transmissions=max_receiving_transmissions, debug=SIM_DEBUG):
+def on_node(graph, graph_copy, node, round_num, run_name, max_receiving_transmissions=max_receiving_transmissions, debug=SIM_DEBUG):
     global last_update_round, current_broadcasts_received_overall, current_broadcasts_received_successfully
     # Check that this node is online before continuing
     if not graph_copy.node[node]['online']:
@@ -386,7 +383,6 @@ For every node, deal with the transmission of information.
         graph: A networkx graph instance.
         graph_copy: Another networkx graph instance which is the deep copy of graph.
         node: A networkx node instance.
-        max_weight: An integer which is the max weight of edges in this graph.
         run_name: The name of the current run
         debug: An optional variable that defaults to false. If debugging is required,
                obviously, you can create some debug prints and toggle them as necessary.
@@ -446,7 +442,6 @@ Determines whether or not a graph is finished.
     Args:
         graph: A networkx graph instance.
         round_num: An integer recording the current number of rounds.
-        max_allowed_rounds: An integer which is set to be the max allowed number of rounds.
         run_name: The name of the current simulation run
 	  
     Returns:
@@ -455,10 +450,7 @@ Determines whether or not a graph is finished.
         1: If the information has been broadcasted to all nodes
 '''
 ####################################################################################
-def finished_hook(graph, round_num, max_allowed_rounds, run_name):
-    #if (round_num == 300):
-    #    for node in graph.node:
-    #        print graph.node[node]
+def finished_hook(graph, round_num, run_name):
     if (helper.exceeded_round_no_update_limit(last_update_round, round_num, max_rounds_no_update)):
         return -1
     for node in graph.node:
@@ -481,7 +473,7 @@ Hook for finishing the simulation run on the current graph.
         run_name: The name of the current simulation run
 '''
 ####################################################################################
-def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
+def on_finished_run(graph, finish_code, round_num, run_name, total_time_seconds):
     global total_broadcasts_sent, total_broadcasts_received_successfully, total_broadcasts_received_overall, total_interference_failures
     global current_broadcasts_sent, current_broadcasts_received_successfully, current_broadcasts_received_overall, current_interference_failures
     global last_update_round
@@ -507,6 +499,23 @@ def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
     current_broadcasts_received_overall = {}
     current_interference_failures = {}
     
+####################################################################################
+
+
+
+####################################################################################
+'''
+Hook for dealing with data across a simulation on the given graph. Specifically, this
+was designed for dealing with looking at differences across the whole simulation.
+    Args:
+        num_runs: The number of runs in a given simulation.
+        graphs: A list of graphs which correspond to the finished graph for each run
+                in the simulation.
+        sim_name: The name of the simulation.
+'''
+####################################################################################
+def on_finished_simulation(num_runs, graphs, sim_name):
+    pass
 ####################################################################################
 
 

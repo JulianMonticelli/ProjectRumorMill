@@ -24,8 +24,9 @@ def test_zombie_to_human_transmission():
     g.node['1']['infected'] = True
     gc = helper.copy_graph(g)
     
+    config.max_weight = 1
     config.infection_base_spread_chance = 1.00 # Set spread chance to 100%
-    config.on_node(g, gc, '1', 1, 1, 'run_name')
+    config.on_node(g, gc, '1', 1, 'run_name')
     
     assert(g.node['2']['infected'])
 
@@ -38,7 +39,7 @@ def test_zombie_to_human_transmission_0_chance():
     gc = helper.copy_graph(g)
     
     config.infection_base_spread_chance = 0 # Set spread chance to 100%
-    config.on_node(g, gc, '1', 1, 1, 'run_name')
+    config.on_node(g, gc, '1', 1, 'run_name')
     
     assert not g.node['2']['infected']
 
@@ -51,7 +52,7 @@ def test_human_heal():
     g.node['1']['health'] = 1
     gc = helper.copy_graph(g)
     
-    config.on_node(g, gc, '1', 1, 1, 'run_name')
+    config.on_node(g, gc, '1', 1, 'run_name')
     
     # Make sure that we have healed
     assert(g.node['1']['health'] > 1)
@@ -108,7 +109,7 @@ def test_find_provisions():
     g = setup_two_graph()
     gc = helper.copy_graph(g)
     config.find_food_chance = 1.00
-    config.on_not_flagged(g, gc, '1', 1, 'run_name')
+    config.on_not_flagged(g, gc, '1', 'run_name')
     
     assert g.node['1']['food'] > test_food_amount
     assert g.node['1']['water'] > test_water_amount
@@ -120,7 +121,7 @@ def test_find_provisions_0_chance():
     g = setup_two_graph()
     gc = helper.copy_graph(g)
     config.find_food_chance = 0.00
-    config.on_not_flagged(g, gc, '1', 1, 'run_name')
+    config.on_not_flagged(g, gc, '1', 'run_name')
     
     assert g.node['1']['food'] == test_food_amount
     assert g.node['1']['water'] == test_water_amount

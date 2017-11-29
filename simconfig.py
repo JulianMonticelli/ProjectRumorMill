@@ -11,6 +11,7 @@ import simdefaults as defaults
 #######################
 heartbeat_interval = 30 # 30 second heartbeat
 maximum_allowed_simulation_rounds = 100 # Max amount of rounds before we stop running a simulation
+max_weight = 0 # We set this in the simulation driver
 num_runs = 3      # Default number of runs per simulation
 
 # Transmission variables
@@ -61,8 +62,10 @@ A logically sound place to put data processing is at the end of this method.
 '''
 ####################################################################################
 def simulation_driver():
+    global max_weight
     # Read in a graph
     graph = nx.read_graphml('simplemodel.graphml')
+    max_weight = helper.max_weight(graph)
     helper.output_graph_information(graph)
 
     # Start from every node in the graph
@@ -110,11 +113,10 @@ Hook for considering a node in the graph.
       graph: A networkx graph instance.
       graph_copy: Another networkx graph instance which is the deep copy of graph.
       node: A networkx node instance.
-      max_weight: An integer which is the max weight of edges in this graph.
       run_name: The name of the current run
 '''
 ####################################################################################
-def on_node(graph, graph_copy, node, max_weight, round_num, run_name):
+def on_node(graph, graph_copy, node, round_num, run_name):
     # Define relevant globals
     global num_forgot
     global num_given
@@ -126,7 +128,7 @@ def on_node(graph, graph_copy, node, max_weight, round_num, run_name):
         # IMPORTANT: So that directed graphs work as well as undirected graphs, consider flagged only
         # Check graph_copy for the flag - if we check graph, we will have leaking
     if (graph_copy.node[node]['flagged']):
-        num_given += on_flagged(graph, graph_copy, node, max_weight, run_name)
+        num_given += on_flagged(graph, graph_copy, node, run_name)
 
         # If the node does not know, and we can spontaneously come into knowing
     else:
@@ -142,7 +144,6 @@ Runs operations on a flagged node to determine if it will transmit information.
       graph: A networkx graph instance.
       graph_copy: Another networkx graph instance which is the deep copy of graph.
       node: A networkx node instance.
-      max_weight: An integer which is the max weight of edges in this graph.
       run_name: The name of the current run
       talk_to_transmit: A boolean which indicates whether 'talk' equals to 'transmit'.
       transmit_chance: A floating number which is the probability of transmission when 'talk' doesn't equal to 'transmit'.
@@ -152,7 +153,7 @@ Runs operations on a flagged node to determine if it will transmit information.
       given_flags: An integer showing how many nodes are flagged in this node operation.
 '''
 ####################################################################################
-def on_flagged(graph, graph_copy, node, max_weight, run_name,
+def on_flagged(graph, graph_copy, node, run_name,
                     talk_to_transmit=talk_to_transmit,
                     transmit_chance=transmit_chance):
     given_flags = 0
@@ -164,7 +165,7 @@ def on_flagged(graph, graph_copy, node, max_weight, run_name,
         if (not graph_copy.node[neighbor]['flagged'] and not graph.node[neighbor]['flagged']):
 
             # If the simulation will actually spread, then spread
-            if (will_spread(node, neighbor, graph, max_weight, run_name, talk_to_transmit, transmit_chance)):
+            if (will_spread(node, neighbor, graph,  run_name, talk_to_transmit, transmit_chance)):
                 graph.node[neighbor]['flagged'] = True
 
                 # Increment the number of given_flags this round
@@ -274,7 +275,6 @@ Determine if a given source node will transmit information to a given node.
       source: A networkx node instance which is the source node in this transmission.
       dest: Another networkx node instance which is the destination node in this transmission.
       graph: A networkx graph instance.
-      max_weight: An integer which is the max weight of edges in this graph.
       run_name: The name of the current run
       talk_to_transmit: A boolean which indicates whether 'talk' equals to 'transmit'.
       transmit_chance: A floating number which is the probability of transmission when 'talk' isn't equal to 'transmit'.
@@ -285,7 +285,7 @@ Determine if a given source node will transmit information to a given node.
 '''
 ####################################################################################
 def will_spread(
-                source, dest, graph, max_weight, run_name,
+                source, dest, graph, run_name,
                 talk_to_transmit=talk_to_transmit,
 				transmit_chance=transmit_chance
                ):
@@ -310,15 +310,17 @@ def will_spread(
 ####################################################################################
 '''
 Hook for changing the graph at the beginning of the round. Note that this takes place before the graph is copied in the engine.
-   Args:
-      graph: A networkx graph instance.
-      max_weight: An integer which is the max weight of edges in this graph.
-      add_edge_list: A list of edges to add
-      remove_edge_list: A list of edges to remove
-      run_name: The name of the current run 
+    Args:
+        graph: A networkx graph instance.
+        add_edge_list: A list for adding new edges from the graph
+        remove_edge_list: A list for removing edges from the graph
+        add_node_list: A list for adding new nodes to the graph
+        remove_node_list: A list for removing nodes from the graph
+        round_num: The number of the current round
+        run_name: The name of the current run 
 '''
 ####################################################################################
-def before_round_start(graph, max_weight, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
+def before_round_start(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
     #for edge in graph.edge:
         # do something
     return
@@ -432,7 +434,6 @@ Determines whether or not a graph is finished.
    Args:
       graph: A networkx graph instance.
       current_round: An integer recording the current number of rounds.
-      max_allowed_rounds: An integer which is set to be the max allowed number of rounds.
       run_name: The name of the current simulation run
 	  [spontaneous_acquisition]: An override for the file default state of spontaneous
                                  acquisition
@@ -445,7 +446,7 @@ Determines whether or not a graph is finished.
       -1: If the current round number exceeds the max allowed number.
 '''
 ####################################################################################
-def finished_hook(graph, current_round, max_allowed_rounds, run_name,
+def finished_hook(graph, current_round, run_name,
                   spontaneous_acquisition = spontaneous_acquisition,
                   spontaneous_acquisition_chance = spontaneous_acquisition_chance):
     # Get all attributes and store them in a dictionary
@@ -454,7 +455,7 @@ def finished_hook(graph, current_round, max_allowed_rounds, run_name,
     helper.num_flagged(graph, 'flagged')
 
     # Make sure we haven't hit the maximum allowed round
-    if (helper.exceeded_round_limit(current_round, max_allowed_rounds)):
+    if (helper.exceeded_round_limit(current_round, maximum_allowed_simulation_rounds)):
         return -1 # -1 means we failed
 
 
@@ -494,7 +495,7 @@ Hook for finishing the simulation run on the current graph.
       run_name: The name of the current simulation run
 '''
 ####################################################################################
-def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
+def on_finished_run(graph, finish_code, round_num, run_name, total_time_seconds):
     global num_given
     global num_forgot
     global total_simulations
@@ -528,6 +529,23 @@ def on_finished(graph, finish_code, round_num, run_name, total_time_seconds):
         min_rounds_success = min(min_rounds_success, round_num)
         max_rounds_success = max(max_rounds_success, round_num)
     # Add simulation-based variables to global sums
+####################################################################################
+
+
+
+####################################################################################
+'''
+Hook for dealing with data across a simulation on the given graph. Specifically, this
+was designed for dealing with looking at differences across the whole simulation.
+    Args:
+        num_runs: The number of runs in a given simulation.
+        graphs: A list of graphs which correspond to the finished graph for each run
+                in the simulation.
+        sim_name: The name of the simulation.
+'''
+####################################################################################
+def on_finished_simulation(num_runs, graphs, sim_name):
+    pass
 ####################################################################################
 
 
