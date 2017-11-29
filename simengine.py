@@ -7,7 +7,7 @@
 # Michael Bigrigg
 #
 # Team Members:
-# Emily Hannah
+# Emily Hanna
 # Tianjian Meng
 # Julian Monticelli
 #######################
@@ -54,7 +54,7 @@ def display_banner():
     print '\_|  |_|  \___/| |\___|\___|\__\_| \_\__,_|_| |_| |_|\___/|_|  \_|  |_/_|_|_|'
     print '              _/ |'
     print '             |__/'
-    print '                               Emily Hannah, Tianjian Meng, Julian Monticelli'
+    print '                               Emily Hanna, Tianjian Meng, Julian Monticelli'
     if (defaults.pause_after_display):
         helper.sleep_ms(defaults.pause_sleep_time_ms)
 ####################################################################################
