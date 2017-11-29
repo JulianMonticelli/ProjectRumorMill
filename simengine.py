@@ -72,7 +72,7 @@ same starting graph as desired, in order to curb randomness.
 '''
 ####################################################################################
 def simulate(graph, num_simulation_runs, sim_name):
-    current_simulation_run = 1
+    current_simulation_run = 0 # Will update as the first step in the simulation loop
     graphs_list = []
     while (current_simulation_run <= num_simulation_runs):
         # Correct simulation run information
