@@ -12,7 +12,7 @@ import simdefaults as defaults
 #######################
 # Simulation arguments#
 #######################
-IS_SIM_GAME = True
+IS_SIM_GAME = False
 DEBUG_STORY = True
 
 max_weight = 10 # 10 is the maximum weight of the given graph, this can be modified
@@ -132,6 +132,8 @@ humans_left_total = 0
 humans_left_min = float('inf')
 humans_left_max = float('-inf')
 
+humans_left_in_round = []
+
 
 ####################################################################################
 '''
@@ -165,7 +167,7 @@ def simulation_driver():
             average_humans_left = (humans_left_total / (float(humans_won)))
         if (zombies_won > 0):
             average_zombies_left = (zombies_left_total / (float(zombies_won)))
-
+        
         print '\n' * 2
         print '*' * defaults.asterisk_space_count
         print 'Simulations complete.'
@@ -186,6 +188,10 @@ def simulation_driver():
         print 'Minimum humans left: ' + str(humans_left_min)
         print 'Average humans left: ' + str(average_humans_left)
         print 'Maximum humans left: ' + str(humans_left_max)
+        
+        helper.create_lineplot(humans_left_in_round, \
+            ylabel='Humans-Zombies at the end of simulation', \
+            xlabel='Simulation run number', grid=True)
 ####################################################################################
 
 
@@ -801,7 +807,8 @@ def on_finished_run(graph, finish_code, round_num, run_name, total_time_seconds)
         zombies_left_total += zombies_left
         zombies_left_min = min(zombies_left, zombies_left_min)
         zombies_left_max = max(zombies_left, zombies_left_max)
-
+        humans_left_in_round.append(-zombies_left)
+        
     elif(finish_code == 2):
         print run_tag + 'Zombies are all dead - humans have prevailed!'
         humans_won += 1
@@ -809,9 +816,11 @@ def on_finished_run(graph, finish_code, round_num, run_name, total_time_seconds)
         humans_left_total += humans_left
         humans_left_min = min(humans_left, humans_left_min)
         humans_left_max = max(humans_left, humans_left_max)
+        humans_left_in_round.append(humans_left)
     elif(finish_code == 3):
         print run_tag + 'Somehow, there was nothing left (starvation may have gotten all humans and zombies died from defense or starvation!)'
         no_survivors += 1
+        humans_left_in_round.append(0)
 
     print '\n\n'
 ####################################################################################

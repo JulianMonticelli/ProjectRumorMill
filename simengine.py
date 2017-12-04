@@ -23,7 +23,10 @@ import datetime
 # Simulation setup
 import simdefaults as defaults
 import simhelper as helper
-import iot_spy as config
+
+import adv_zombie_config as config
+#import iot_spy as config
+
 # Replace ^ that argument for different simulations
 
 
@@ -72,11 +75,9 @@ same starting graph as desired, in order to curb randomness.
 '''
 ####################################################################################
 def simulate(graph, num_simulation_runs, sim_name):
-    current_simulation_run = 0 # Will update as the first step in the simulation loop
+    current_simulation_run = 1 # Will update as the first step in the simulation loop
     graphs_list = []
     while (current_simulation_run <= num_simulation_runs):
-        # Correct simulation run information
-        current_simulation_run += 1
         run_name = sim_name + '_r' + str(current_simulation_run)
         
         # Copy the graph given to the simulation
@@ -87,6 +88,9 @@ def simulate(graph, num_simulation_runs, sim_name):
         
         # Append a frozen graph to preserve data without mutation
         graphs_list.append(graph_instance)
+        
+        # Correct simulation run information
+        current_simulation_run += 1
         
     # When we are finished with the simulation, send the graphs to collect data
     config.on_finished_simulation(num_simulation_runs, graphs_list, sim_name)

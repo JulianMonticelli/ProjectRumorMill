@@ -25,14 +25,17 @@ num_runs = 1
 
 max_receiving_transmissions = 1
 
-max_rounds_no_update = 64
+max_rounds_no_update = 500
 
-# The amount of extra random integer results 
+# The amount of extra randomness in broadcast interference
+# delay - rand_extra 0 gives a randint of (1, neighbor_count + 0)
 rand_extra = 3
 
 csv_file = 'iot/r.csv'
 
 radius_step = 5
+
+graph_disconnect_level_threshold = 0.50
 
 #######################
 # Global data         #
@@ -50,6 +53,19 @@ current_broadcasts_received_successfully = {}
 current_broadcasts_received_overall = {}
 current_interference_failures = {}
 
+# A collection of all the nodes that have been removed from the ORIGINAL graph
+all_nodes_removed = []
+
+# A collection of nodes which should be removed at the end of the simulation
+nodes_to_remove = []
+
+# The 
+current_graph_information_spread = 1.0 # The spread of information across the whole simulation 
+
+graph_information_spread = []
+
+
+
 val_total = 0
 val_min = float('inf')
 val_max = float('-inf')
@@ -65,6 +81,7 @@ A logically sound place to put data processing is at the end of this method.
 def simulation_driver():
     global total_broadcasts_sent, total_broadcasts_received_successfully, total_broadcasts_received_overall, total_interference_failures
     global current_broadcasts_sent, current_broadcasts_received_successfully, current_broadcasts_received_overall, current_interference_failures
+    global all_nodes_removed, nodes_to_remove
     
     # First read in a graph with initial
     graph = iot_graph(csv_file)
@@ -74,47 +91,48 @@ def simulation_driver():
     
     # Store number of nodes in graph for later use (possibly)
     num_nodes = helper.num_nodes(graph)
-    
-    # Initialize total dictionaries
-    for node in graph.node:
-        # Total dictionaries
-        total_broadcasts_sent[node] = 0
-        total_broadcasts_received_successfully[node] = 0
-        total_broadcasts_received_overall[node] = 0
-        total_interference_failures[node] = 0
-        # Current dictionaries
-        current_broadcasts_sent[node] = 0
-        current_broadcasts_received_successfully[node] = 0
-        current_broadcasts_received_overall[node] = 0
-        current_interference_failures[node] = 0
-    
-    # Simulation name will be something like "iot_p_10"
-    sim_name = 'iot_' + csv_file[:len(csv_file)-4]
-    
-    init(graph, sim_name)
-    engine.simulate(graph, num_runs, sim_name)
-
-    print '*' * 40
-    print 'This is the end of the simulation.'
-    print '*' * 40
-    
-    for node in graph.node:
-        print node + ':'
-        print '>Total broadcasts sent                    = ' + str(total_broadcasts_sent[node])
-        print '>Total broadcasts received (successfully) = ' + str(total_broadcasts_received_successfully[node])
-        print '>Total broadcasts received (overall)      = ' + str(total_broadcasts_received_overall[node])
-        print '>Total interference failures              = ' + str(total_interference_failures[node])
-    
-    mbcs = str(helper.get_max_in_dict(total_broadcasts_sent))
-    mbcrs = str(helper.get_max_in_dict(total_broadcasts_received_successfully))
-    mbcro = str(helper.get_max_in_dict(total_broadcasts_received_overall))
-    mif = str(helper.get_max_in_dict(total_interference_failures))
-    
-    print '>Max broadcasts sent:                     = ' + mbcs + '\t(' + str(total_broadcasts_sent[mbcs]) + ')'
-    print '>Max broadcasts received (successfully)   = ' + mbcrs + '\t(' + str(total_broadcasts_received_successfully[mbcrs]) + ')'
-    print '>Max broadcasts received (overall)        = ' + mbcro + '\t(' + str(total_broadcasts_received_overall[mbcro]) + ')'
-    print '>Max interference failures                = ' + mif + '\t(' + str(total_interference_failures[mif]) + ')'
+    simulation_iteration = -1
+    while (current_graph_information_spread >= graph_disconnect_level_threshold):
+        # More specifically, what index graph_information_spread index contains
+        # the information spread chance of this current simulation
+        simulation_iteration += 1
         
+        # Initialize total dictionaries
+        for node in graph.node:
+            # Total dictionaries
+            total_broadcasts_sent[node] = 0
+            total_broadcasts_received_successfully[node] = 0
+            total_broadcasts_received_overall[node] = 0
+            total_interference_failures[node] = 0
+            # Current dictionaries
+            current_broadcasts_sent[node] = 0
+            current_broadcasts_received_successfully[node] = 0
+            current_broadcasts_received_overall[node] = 0
+            current_interference_failures[node] = 0
+        
+        # Simulation name will be something like "iot_p_10"
+        sim_name = 'iot_' + csv_file[:len(csv_file)-4]
+        
+        init(graph, sim_name)
+        engine.simulate(graph, num_runs, sim_name)
+
+        print '*' * 40
+        print 'This is the end of the simulation. Current graph information spread: ' + \
+        str(helper.percent(graph_information_spread[simulation_iteration], 1.00)) \
+        + '%!'
+        print '*' * 40
+        
+        helper.modify_graph_nodes(graph, [], nodes_to_remove)
+        all_nodes_removed += nodes_to_remove
+        nodes_to_remove = []
+        
+    
+    print 'The following nodes were removed to separate the graph to ' + \
+        str(helper.percent(graph_information_spread[simulation_iteration], 1.00)) \
+        + '% information spread:\n'
+        
+    for node in all_nodes_removed:
+        print node
 ####################################################################################
 
 
@@ -494,10 +512,10 @@ def on_finished_run(graph, finish_code, round_num, run_name, total_time_seconds)
         total_broadcasts_received_overall[node] += current_broadcasts_received_overall[node]
         total_interference_failures[node] += current_interference_failures[node]
     
-    current_broadcasts_sent = {}
-    current_broadcasts_received_successfully = {}
-    current_broadcasts_received_overall = {}
-    current_interference_failures = {}
+    current_broadcasts_sent[node] = 0
+    current_broadcasts_received_successfully[node] = 0
+    current_broadcasts_received_overall[node] = 0
+    current_interference_failures[node] = 0
     
 ####################################################################################
 
@@ -515,7 +533,78 @@ was designed for dealing with looking at differences across the whole simulation
 '''
 ####################################################################################
 def on_finished_simulation(num_runs, graphs, sim_name):
-    pass
+    global nodes_to_remove
+    
+    global current_graph_information_spread
+    global graph_information_spread
+    # Variables for storing simulation-totals and average
+    avg_tbs   = 0
+    avg_tbr_s = 0
+    avg_tbr_o = 0
+    avg_tif   = 0
+    sim_tbs   = 0
+    sim_tbr_s = 0
+    sim_tbr_o = 0
+    sim_tif   = 0
+    
+    total_information_bits = 0
+    has_information_bits   = 0
+    
+    nodes = len(graphs[0].node)
+    
+    
+    # We will use this loop to determine average of nodes -
+    # I left in some statements for calculating values in the graph from the other
+    # total values we collected earlier. Currently, the simulation only checks how
+    # many overall receptions of signal were recieved, successfully or otherwise.
+    for node in graphs[0].node:
+        #sim_tbs   += total_broadcasts_sent[node]
+        #sim_tbr_s += total_broadcasts_received_successfully[node]
+        sim_tbr_o += total_broadcasts_received_overall[node]
+        #sim_tif   += total_interference_failures[node]
+    
+    #avg_tbs   = sim_tbs   / (num_runs * nodes)
+    #avg_tbr_s = sim_tbr_s / (num_runs * nodes)
+    avg_tbr_o = sim_tbr_o / (num_runs * nodes)
+    #avg_tif   = avg_tif   / (num_runs * nodes)
+    
+    for node in graphs[0].node:
+        #threshold_tbs   = rand.randint( avg_tbs,   (avg_tbs   + (avg_tbs   / 4)) )
+        #threshold_tbr_s = rand.randint( avg_tbr_s, (avg_tbr_s + (avg_tbs_s / 4)) )
+        #threshold_tif   = rand.randint( avg_tif,   (avg_tif   + (avg_tif   / 4)) )
+        
+        threshold_tbr_o = rand.randint( avg_tbr_o, (avg_tbr_o + (avg_tbr_o / 2)) )
+        if (total_broadcasts_received_overall[node] >= threshold_tbr_o):
+            nodes_to_remove.append(node)
+            
+    
+    # Get current_graph_information
+    for graph in graphs:
+        for node in graph.node:
+            for ibit in graph.node:
+                total_information_bits += 1
+                if (graph.node[node]['has_' + ibit]):
+                    has_information_bits += 1
+    current_graph_information_spread = has_information_bits / float(total_information_bits)
+    
+    mbcs = str(helper.get_max_in_dict(total_broadcasts_sent))
+    mbcrs = str(helper.get_max_in_dict(total_broadcasts_received_successfully))
+    mbcro = str(helper.get_max_in_dict(total_broadcasts_received_overall))
+    mif = str(helper.get_max_in_dict(total_interference_failures))
+    
+    print '>Max broadcasts sent:                     = ' + mbcs + '\t(' + str(total_broadcasts_sent[mbcs]) + ')'
+    print '>Max broadcasts received (successfully)   = ' + mbcrs + '\t(' + str(total_broadcasts_received_successfully[mbcrs]) + ')'
+    print '>Max broadcasts received (overall)        = ' + mbcro + '\t(' + str(total_broadcasts_received_overall[mbcro]) + ')'
+    print '>Max interference failures                = ' + mif + '\t(' + str(total_interference_failures[mif]) + ')'
+    
+    print '\nSimulation has determined nodes to remove:'
+    
+    for ntr in nodes_to_remove:
+        print ntr
+        
+    print '\nCurrent graph information spread:' + str(current_graph_information_spread) + '\n'
+    graph_information_spread.append(current_graph_information_spread)
+    print '\n'
 ####################################################################################
 
 

@@ -1092,6 +1092,95 @@ def get_list_of_last_names(number_of_results):
 
 ####################################################################################
 '''
+Returns a list of n names from all possible name combinations. This is not gender-
+specific, and will randomly grab names. If you would like gender-specific names, it
+would be wise to use the gender-specific name methods.
+
+Names are in the format First Last, and it is important to note that this method 
+offers no guarantee of name uniquess.
+
+    Args:
+        n: Number of names the function will return (can be any amount)
+
+    Returns:
+        A list of n full names.
+'''
+####################################################################################
+def get_names(n):
+    ln = get_list_of_last_names(1000)
+    fn  = get_list_of_female_names(1000)
+    mn = get_list_of_male_names(1000)
+    return [rand.choice(mn) + ' ' + rand.choice(ln) if bool(rand.getrandbits(1))  \
+                else rand.choice(fn) + ' ' + rand.choice(ln) for i in range(n)]
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns a list of n female names from all possible name combinations.
+Names are in the format First Last, and it is important to note that this method 
+offers no guarantee of name uniquess.
+
+    Args:
+        n: Number of names the function will return (can be any amount)
+
+    Returns:
+        A list of n full names.
+'''
+####################################################################################
+def get_female_names(n):
+    ln = get_list_of_last_names(1000)
+    fn  = get_list_of_female_names(1000)
+    return [rand.choice(fn) + ' ' + rand.choice(ln) for i in range(n)]
+####################################################################################
+
+
+
+####################################################################################
+'''
+Returns a list of n male names from all possible name combinations.
+Names are in the format First Last, and it is important to note that this method 
+offers no guarantee of name uniquess.
+
+    Args:
+        n: Number of names the function will return (can be any amount)
+
+    Returns:
+        A list of n full names.
+'''
+####################################################################################
+def get_male_names(n):
+    ln = get_list_of_last_names(1000)
+    mn = get_list_of_male_names(1000)
+    return [rand.choice(mn) + ' ' + rand.choice(ln) for i in range(n)]
+####################################################################################
+
+
+
+####################################################################################
+'''
+Creates a line plot out of data passed to the argument.
+'''
+####################################################################################
+def create_lineplot(yvalues, ylabel='', xvalues=None, xlabel='', grid=False):
+    import matplotlib.pyplot as plt
+    if xvalues is None:
+        xvalues = [i for i in range(1,len(yvalues)+1)]
+    plt.plot(xvalues, yvalues)
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
+    
+    if grid:
+        plt.grid(color='g', linestyle='-', linewidth=1)
+    
+    plt.show()
+####################################################################################
+
+
+
+####################################################################################
+'''
 Helper template.
     Args:
         arg1: Description
