@@ -24,8 +24,8 @@ import datetime
 import simdefaults as defaults
 import simhelper as helper
 
-import adv_zombie_config as config
-#import iot_spy as config
+#import adv_zombie_config as config
+import iot_spy as config
 
 # Replace ^ that argument for different simulations
 
@@ -49,6 +49,7 @@ def main():
 ####################################################################################
 def display_banner():
     # Banner from http://patorjk.com/software/taag/
+    print '' # Whitespace
     print '______          _           _  ______                          ___  ____ _ _'
     print '| ___ \        (_)         | | | ___ \                         |  \/  (_) | |'
     print '| |_/ / __ ___  _  ___  ___| |_| |_/ /   _ _ __ ___   ___  _ __| .  . |_| | |'
@@ -186,12 +187,12 @@ def round(graph, round_num, run_name):
     # Deal with potential post-round graph changes 
     config.after_round_end(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name)
 
+    # Perform graph changes, if there are any
+    helper.modify_graph(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list)
+
     # Fix node attributes as config deems necessary
     # Also, any reconsiderations 
     config.post_graph_modification(graph, add_edge_list, add_node_list, run_name)
-
-    # Perform graph changes, if there are any
-    helper.modify_graph(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list)
 ####################################################################################
 
 
