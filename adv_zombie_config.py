@@ -9,6 +9,18 @@ import simhelper as helper
 import simdefaults as defaults
 
 
+'''
+What I planned on doing that I didn't do:
+    - Implement a purpose for age
+    - Make the zombie simulation actually somewhat realistic
+    - Balance the simulation
+      (oh, but you can play around with it if you want, of course.)
+    - Make humans do something more than occasionally cannibalize
+        each other when they're desparate.
+    - Add spontaneous infection, fix transmission
+'''
+
+
 #######################
 # Simulation arguments#
 #######################
@@ -261,6 +273,86 @@ def damage_message(damage, node):
 
 ####################################################################################
 '''
+Hook for changing the graph at the beginning of the round. Note that this takes place before the graph is copied in the engine.
+    Args:
+        graph: A networkx graph instance.
+        add_edge_list: A list for adding new edges from the graph
+        remove_edge_list: A list for removing edges from the graph
+        add_node_list: A list for adding new nodes to the graph
+        remove_node_list: A list for removing nodes from the graph
+        round_num: The number of the current round
+        run_name: The name of the current run 
+'''
+####################################################################################
+def before_round_start(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
+    for node in graph.node:
+        for neighbor in nx.all_neighbors(graph, node):
+            if helper.chance( chance_lose_edge ):
+                helper.add_edge_to_list(remove_edge_list, node, neighbor)
+            if helper.chance( chance_gain_edge / 2 ):
+                gain_edge(graph, node, add_edge_list, run_name)
+            if helper.chance( chance_gain_edge / 2 ):
+                gain_edge(graph, neighbor, add_edge_list, run_name)
+####################################################################################
+
+
+
+####################################################################################
+'''
+Handles a special node (or multiple special nodes). It is up to the user to define
+this hook's behavior, otherwise the correct move would be to pass.
+    Args:
+        graph: A networkx graph instance.
+        graphcopy: An unedited copy of the networkx graph instance.
+        round_num: The current round number
+        run_name: The name of the current simulation run.
+'''
+####################################################################################
+def special_node_handle(graph, graph_copy, round_num, run_name):
+    # Leader node should be set to max betweenness node
+    leader = helper.get_max_betweenness_node(graph)
+    
+    # Leader nodes shouldn't act if they're infected.
+    if graph.node[leader]['infected']:
+        return
+
+
+    for neighbor in nx.all_neighbors(graph, leader):
+        edge_weight = graph.edge[leader][neighbor]['weight']
+	  
+        # If zombie neighbor, try to attack
+        if ( graph.node[neighbor]['infected'] and not is_dead(graph, neighbor) ):
+            # Chance  that the action occurs based on weight between the two nodes
+            if ( helper.roll_weight(edge_weight, max_weight) ):
+                damage = rand.randint(min_human_damage, max_human_damage)
+                if (DEBUG_STORY):
+                    print human_zombie_tag + 'A leader, ' + leader + ',',
+                    damage_message(damage, neighbor)
+                    print '. ...what a hero.'
+                graph.node[neighbor]['health'] -= damage
+                
+                # If the leader node has killed a zombie
+                if (is_dead(graph, neighbor) and DEBUG_STORY):
+                    print human_zombie_tag + 'A leader has taken care of another ' \
+                        + 'zombie problem. What a nice guy.'
+        else:
+            health_to_full = 100 - graph.node[neighbor]['health']
+            if (health_to_full > 0):
+                # Roll a chance based on edge weight whether or not the leader
+                # will attempt to heal his neighbor.
+                if ( helper.roll_weight(edge_weight, max_weight) ):
+                    leader_heal_amt = rand.randint(1, health_to_full)
+                    if (DEBUG_STORY):
+                        print 'A leader, ' + leader + ' heals his human neighbor, ' + neighbor \
+                            + ', for ' + str(leader_heal_amt) + ' health. Gee, that was nice.'
+                
+                # TODO: Finish
+####################################################################################
+
+
+
+####################################################################################
+'''
 Hook for considering a node in the graph.
     Args:
         graph: A networkx graph instance.
@@ -337,23 +429,17 @@ def on_not_flagged(graph, graph_copy, node, run_name):
         handle_find_food(graph, node)
 
     # Leader nodes and non-leader nodes think differently
-    if not node == leader_node:
-        for neighbor in nx.all_neighbors(graph, node):
-            if not graph.node[neighbor]['infected']:
-                human_human_interaction(graph, node, neighbor, run_name)
-                # If ever our currently considered node is dead, return
-                if (is_dead(graph, node)):
-                    return
-
-    elif node == leader_node:
-        print 'detected leader node!!!' 
-        handle_leader_node(graph, node)
-
-        # Do something with the neighbor? Could help or harm
-
-        # Make sure the player is still alive
-        if (is_dead(graph, node)):
+    for neighbor in nx.all_neighbors(graph, node):
+        if not graph.node[neighbor]['infected']:
+            human_human_interaction(graph, node, neighbor, run_name)
+            # If ever our currently considered node is dead, return
+            if (is_dead(graph, node)):
                 return
+
+
+    # Make sure the player is still alive
+    if (is_dead(graph, node)):
+            return
 
     # Heal damage
     node_health = graph.node[node]['health']
@@ -430,38 +516,6 @@ Checks if a given node is dead.
 def is_dead(graph, node):
     return graph.node[node]['health'] <= 0
 ####################################################################################
-
-
-
-####################################################################################
-'''
-Handles a leader node (which should be a human node).
-    Args:
-        graph: A networkx graph instance.
-        leader: The leader node
-        run_name: The name of the current simulation run.
-'''
-####################################################################################
-def handle_leader_node(graph, leader, run_name):
-    for neighbor in nx.all_neighbors(graph, leader):
-        edge_weight = graph.edge[leader][neighbor]['weight']
-	  
-        # If zombie neighbor, try to attack
-        if ( graph.node[neighbor]['infected'] and not is_dead(graph, neighbor) ):
-            if ( helper.roll_weight(edge_weight, max_weight) ):
-                damage = rand.randint(min_human_damage, max_human_damage)
-                print human_zombie_tag + 'A leader, ' + leader + ',',
-                damage_message(damage, neighbor)
-                '. ...what a hero.'
-                graph.node[neighbor]['health'] -= damage
-                
-                # If the leader node has killed a zombie
-                if (is_dead(graph, neighbor)):
-                    print human_zombie_tag + 'A leader has taken care of another zombie problem. What a nice guy.'
-
-                # TODO: Finish
-####################################################################################
-
 
 
 
@@ -589,33 +643,6 @@ def will_spread(source, dest, graph, run_name):
                     graph.node[dest]['health'] = rand.randint(rise_from_dead_min_hp, rise_from_dead_max_hp)
                     return True
     return False
-####################################################################################
-
-
-
-####################################################################################
-'''
-Hook for changing the graph at the beginning of the round. Note that this takes place before the graph is copied in the engine.
-    Args:
-        graph: A networkx graph instance.
-        add_edge_list: A list for adding new edges from the graph
-        remove_edge_list: A list for removing edges from the graph
-        add_node_list: A list for adding new nodes to the graph
-        remove_node_list: A list for removing nodes from the graph
-        round_num: The number of the current round
-        run_name: The name of the current run 
-'''
-####################################################################################
-def before_round_start(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
-    leader_node = helper.get_max_betweenness_node(graph)
-    for node in graph.node:
-        for neighbor in nx.all_neighbors(graph, node):
-            if helper.chance( chance_lose_edge ):
-                helper.add_edge_to_list(remove_edge_list, node, neighbor)
-            if helper.chance( chance_gain_edge / 2 ):
-                gain_edge(graph, node, add_edge_list, run_name)
-            if helper.chance( chance_gain_edge / 2 ):
-                gain_edge(graph, neighbor, add_edge_list, run_name)
 ####################################################################################
 
 

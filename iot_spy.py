@@ -347,6 +347,23 @@ def post_graph_modification(graph, add_edge_list, add_node_list, run_name):
 
 ####################################################################################
 '''
+Handles a special node (or multiple special nodes). It is up to the user to define
+this hook's behavior, otherwise the correct move would be to pass.
+    Args:
+        graph: A networkx graph instance.
+        graphcopy: An unedited copy of the networkx graph instance.
+        round_num: The current round number
+        run_name: The name of the current simulation run.
+'''
+####################################################################################
+def special_node_handle(graph, graph_copy, round_num, run_name):
+    pass
+####################################################################################
+
+
+
+####################################################################################
+'''
 For every node, deal with the transmission of information.
     Args:
         graph: A networkx graph instance.
@@ -553,27 +570,15 @@ def on_finished_simulation(num_runs, graphs, sim_name):
     nodes = len(graphs[0].node)
     
     
-    # We will use this loop to determine average of nodes -
-    # I left in some statements for calculating values in the graph from the other
-    # total values we collected earlier. Currently, the simulation only checks how
-    # many overall receptions of signal were recieved, successfully or otherwise.
+
     for node in graphs[0].node:
-        #sim_tbs   += total_broadcasts_sent[node]
-        #sim_tbr_s += total_broadcasts_received_successfully[node]
         sim_tbr_o += total_broadcasts_received_overall[node]
-        #sim_tif   += total_interference_failures[node]
     
-    #avg_tbs   = sim_tbs   / (num_runs * nodes)
-    #avg_tbr_s = sim_tbr_s / (num_runs * nodes)
     avg_tbr_o = sim_tbr_o / (num_runs * nodes)
-    #avg_tif   = avg_tif   / (num_runs * nodes)
     
     for node in graphs[0].node:
-        #threshold_tbs   = rand.randint( avg_tbs,   (avg_tbs   + (avg_tbs   / 4)) )
-        #threshold_tbr_s = rand.randint( avg_tbr_s, (avg_tbr_s + (avg_tbs_s / 4)) )
-        #threshold_tif   = rand.randint( avg_tif,   (avg_tif   + (avg_tif   / 4)) )
         
-        threshold_tbr_o = rand.randint( avg_tbr_o, (avg_tbr_o + (avg_tbr_o / 2)) )
+        threshold_tbr_o = rand.randint( avg_tbr_o, (2 * avg_tbr_o) )
         if (total_broadcasts_received_overall[node] >= threshold_tbr_o):
             nodes_to_remove.append(node)
             

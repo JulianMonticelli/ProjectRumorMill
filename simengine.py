@@ -177,6 +177,9 @@ def round(graph, round_num, run_name):
     # Deep copy graph after pre-round graph changes
     graph_copy = helper.copy_graph(graph)
 
+    # Deal with special (leader/otherwise) nodes before iterating the node lists
+    config.special_node_handle(graph, graph_copy, round_num, run_name)
+    
     for node in nx.nodes(graph):
         config.on_node(graph, graph_copy, node, round_num, run_name)
 
