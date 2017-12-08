@@ -428,7 +428,7 @@ def on_not_flagged(graph, graph_copy, node, run_name):
     if (helper.chance(find_food_chance)):
         handle_find_food(graph, node)
 
-    # Leader nodes and non-leader nodes think differently
+    # Deal with neighbors
     for neighbor in nx.all_neighbors(graph, node):
         if not graph.node[neighbor]['infected']:
             human_human_interaction(graph, node, neighbor, run_name)
