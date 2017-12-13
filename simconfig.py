@@ -108,6 +108,23 @@ def simulation_driver():
 
 ####################################################################################
 '''
+Handles a special node (or multiple special nodes). It is up to the user to define
+this hook's behavior, otherwise the correct move would be to pass.
+    Args:
+        graph: A networkx graph instance.
+        graphcopy: An unedited copy of the networkx graph instance.
+        round_num: The current round number
+        run_name: The name of the current simulation run.
+'''
+####################################################################################
+def special_node_handle(graph, graph_copy, round_num, run_name):
+    pass
+####################################################################################
+
+
+
+####################################################################################
+'''
 Hook for considering a node in the graph.
    Args:
       graph: A networkx graph instance.
@@ -330,21 +347,19 @@ def before_round_start(graph, add_edge_list, remove_edge_list, add_node_list, re
 
 ####################################################################################
 '''
-Hook for making changes to the graph after the before_round_start. Since the 
-before_round_start method adds edges, add_edge_list is passed along with the
-graph to easily add attributes to edges so that we don't need to worry about
-checking for which edges to add attributes to. If any overarching graph metric
-needs to be recalculated after changing graph edges, (i.e., betweenness, density)
-chamge them here.
+Hook for making changes to the graph after the we have modified its edges and nodes.
+If there are attributes that are critical to the simulation, you should define them
+for each of 
 
     Args:
         graph: A networkx graph instance
         add_edge_list: A list of edges we have added to the graph
+        add_node_list: A list of edges we have added to the graph
         run_name: A name for the simulation run
 '''
 ####################################################################################
-def post_edge_modification(graph, add_edge_list, run_name):
-    return
+def post_graph_modification(graph, add_edge_list, add_node_list, run_name):
+   return
 ####################################################################################
 
 
@@ -369,26 +384,6 @@ def after_round_end(graph, add_edge_list, remove_edge_list, add_node_list, remov
         # do something
 
     return given_flags, removed_flags
-####################################################################################
-
-
-
-####################################################################################
-'''
-Hook for making changes to the graph after the after_round_start. Since the
-after_round_start method adds nodes, add_node_list is passed along with the
-graph to easily add attributes to nodes so that we don't need to worry about
-checking for which nodes to add attributes to. If any overarching graph metric
-needs to be recalculated after changing graph nodes (i.e. num nodes, etc.), 
-change them here.
-
-    Args:
-        graph: A networkx graph instance
-        add_node_list: A list of nodes we have added to the graph
-'''
-####################################################################################
-def post_node_modification(graph, add_node_list, run_name):
-    return # Add some code pls
 ####################################################################################
 
 
