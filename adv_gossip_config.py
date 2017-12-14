@@ -27,7 +27,15 @@ max_virality = 0
 min_rounds_success = float('inf')
 max_rounds_success = float('-inf')
 
-print_output = False
+
+#######################
+# Printing Variables  #
+#######################
+print_round_output = False
+print_sim_output = True
+print_run_output = True
+
+node_attrs = " "
 
 
 #######################
@@ -35,7 +43,7 @@ print_output = False
 #######################
 heartbeat_interval = 30 #30 second heartbeat interval
 maximum_allowed_simulation_rounds = 100 # Max amount of rounds before we stop running a simulation
-num_runs = 30      #Default number of runs per simulation
+num_runs = 3      #Default number of runs per simulation
 is_the_gossip_serious = True #if the gossip is serious the chance will increase
 is_the_group_discreet = False #if group is discreet the chance of info traveling will decrease
 talk_to_transmit = True
@@ -320,32 +328,34 @@ def simulation_driver():
        for skn in skip_nodes:
            if n == skn:
              #   won't pass the gossip
-             if(print_output):
+             if(print_round_output):
                  print(n + " won't pass gossip about themself.")
              continue
-    graphcopy = copy.deepcopy(graph)
+    for n in graph.node:
+        graphcopy = copy.deepcopy(graph)
 
-    # Create a simulation name
-    sim_name = 'Gossip_Simulation_' + str(n)
+        # Create a simulation name
+        sim_name = 'Gossip_Simulation_' + str(n)
 
-    init(graphcopy, n, sim_name)
+        init(graphcopy, n, sim_name)
 
-    # Start simulation with the simulation name
-    engine.simulate(graphcopy, num_runs, sim_name)
+        # Start simulation with the simulation name
+        engine.simulate(graphcopy, num_runs, sim_name)
 
     # Data collection per simulation should go here - any global variables should be recorded and reset
+    if(print_sim_output):
+        average_rounds = 0
+        if (total_successes > 0):
+          average_rounds = total_rounds / float(total_successes)
+        print '\n' * 2
+        print '*' * defaults.asterisk_space_count
+        print 'Simulations complete.'
+        print '*' * defaults.asterisk_space_count
+        print 'Simulations where all individuals at the school learned the rumor: ' + str(total_successes)
+        print 'Simulations where the rumor did not spread across entire school: ' + str(num_fails)
+        print 'Total number of simulations (complete and incomplete):    ' + str(total_simulations)
+        print '\n' + '*' * defaults.asterisk_space_count + '\n'
 
-    average_rounds = 0
-    if (total_successes > 0):
-      average_rounds = total_rounds / float(total_successes)
-    print '\n' * 2
-    print '*' * defaults.asterisk_space_count
-    print 'Simulations complete.'
-    print '*' * defaults.asterisk_space_count
-    print 'Simulations where all individuals at the school learned the rumor: ' + str(total_successes)
-    print 'Simulations where the rumor did not spread across entire school: ' + str(num_fails)
-    print 'Total number of simulations (complete and incomplete):    ' + str(total_simulations)
-    print '\n' + '*' * defaults.asterisk_space_count + '\n'
 ####################################################################################
 
 
@@ -438,11 +448,6 @@ def on_flagged(graph, graph_copy, node, max_weight, run_name,
                transmit_chance=transmit_chance):
    given_flags = 0
 
-
-   #get value for talk_to_transmit
-   transmit_chance, attrs = set_talk_to_transmit_val(graph, node)
-   strt = str(node), " who is a"+ str(attrs[0]) +" "+ str(attrs[1])
-
    # Check the unedited copy graph for flagged neighbors
    for neighbor in graph_copy.edge[node]:
 
@@ -453,15 +458,13 @@ def on_flagged(graph, graph_copy, node, max_weight, run_name,
          b = will_spread(node, neighbor, graph, max_weight, run_name, talk_to_transmit, transmit_chance)
          if (b):
             graph.node[neighbor]['flagged'] = True
-            if(print_output):
-                print(str(strt).replace("('","").replace("', '","").replace("')","") +" attempted to spread the rumor")
-
-
+            if(print_round_output):
+                print(str(node_attrs).replace("('","").replace("', '","").replace("')","") +" spread the rumor to "+neighbor)
             # Increment the number of given_flags this round
             given_flags += 1
          else:
-            if(print_output):
-                print(str(strt).replace("('","").replace("', '","").replace("')","") + " failed to spread the rumor")
+            if(print_round_output):
+                print(str(node_attrs).replace("('","").replace("', '","").replace("')","") + " failed to spread the rumor to "+neighbor)
 
 
    return given_flags
@@ -577,9 +580,7 @@ Hook for changing the graph at the beginning of the round. Note that this takes 
 '''
 ####################################################################################
 def before_round_start(graph, add_edge_list, remove_edge_list, add_node_list, remove_node_list, round_num, run_name):
-
-   helper.sleep_ms(100)
-   return
+    pass
 ####################################################################################
 
 
@@ -664,13 +665,15 @@ def on_finished_run(graph, finish_code, round_num, run_name, total_time_seconds)
    num_flagged += flagged_nodes
 
    if (finish_code < 0):
-      print run_name + '> failed! only ' + str(helper.num_flagged(graph, 'flagged')) + ' people at the school learned the rumor, out of ' + str(helper.num_nodes(graph))
+      if(print_run_output):
+          print run_name + '> failed! only ' + str(helper.num_flagged(graph, 'flagged')) + ' people at the school learned the rumor, out of ' + str(helper.num_nodes(graph))
       num_given = 0
       num_forgot = 0
       num_fails += 1
       return
    else:
-      print run_name + '> succeeded! ' + str(helper.num_flagged(graph, 'flagged')) + ' people at the school learned the rumor, out of ' + str(helper.num_nodes(graph))
+      if(print_run_output):
+          print run_name + '> succeeded! ' + str(helper.num_flagged(graph, 'flagged')) + ' people at the school learned the rumor, out of ' + str(helper.num_nodes(graph))
       total_rounds
       num_given = 0
       num_forgot = 0
@@ -711,6 +714,18 @@ Also initializes uninitialized weights on graphs as 1.
 '''
 ####################################################################################
 def init(graph, node, sim_name):
+
+   # global spontaneous_acquisition_chance
+   # global spontaneous_forget_chance
+   global transmit_chance
+   global node_attrs
+
+   #get value for talk_to_transmit
+   transmit_chance, attrs = set_talk_to_transmit_val(graph, node)
+   node_attrs = str(node), " who is a"+ str(attrs[0]) +" "+ str(attrs[1])
+
+   # spontaneous_acquisition_chance = set_spontaneous_aq_val(graph,node)
+   # spontaneous_forget_chance = set_spontaneous_forget_val(graph, node)
    # Let the user know what node is the starting node.
    if (defaults.LOGGING or defaults.DEBUG or defaults.defaults.DEBUG_SEVERE):
       print '\n' + '*' * defaults.asterisk_space_count + '\nInitializing graph - \'' + str(node) + '\' is in the know.'
